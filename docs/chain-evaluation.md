@@ -60,18 +60,23 @@
 
 ## 修复优先级（代码层，均在案实证）
 
-| 序 | 仓库 | 修复 | 影响环节 | 工作量 |
+| 序 | 仓库 | 修复 | 影响环节 | 状态（2026-08-23） |
 |---|---|---|---|---|
-| 1 | Vencertia | `_map_piecewise` 低端钳制 + 边界测试 | 复盘校准 | 一行 + 一个用例 |
-| 2 | Vencertia | 手工证据路径接 BeliefEngine.update | 决策质量 | 小 |
-| 3 | Vencertia | LLM 自报 authority 钳制到类型天花板 | 决策质量 | 小 |
-| 4 | Vencertia | challenger 罐头 critique 接真模型或诚实隐藏 | 决策质量 | 小 |
-| 5 | AIPD | supervisor phase 主键改含 project_id 复合键 | 推进落地 | 小 |
-| 6 | AIPD | closure 返工前检查 side_effect_mode | 推进落地 | 小 |
-| 7 | AIPD | CLI 与 `_repo_root` 仓库布局解耦 | 部署 | 中 |
+| 1 | Vencertia | `_map_piecewise` 低端钳制 + 边界测试 | 复盘校准 | ✅ 已修复（PR #2） |
+| 2 | Vencertia | 手工证据路径接 BeliefEngine.update | 决策质量 | ✅ 已修复（PR #2） |
+| 3 | Vencertia | LLM 自报 authority 钳制到类型天花板 | 决策质量 | ✅ 已修复（PR #2） |
+| 4 | Vencertia | challenger 罐头 critique 接真模型或诚实隐藏 | 决策质量 | ✅ 已修复（PR #2，critic 改注入式） |
+| 5 | AIPD | supervisor phase 主键改含 project_id 复合键 | 推进落地 | ✅ 已修复（PR #2） |
+| 6 | AIPD | closure 返工前检查 side_effect_mode | 推进落地 | ✅ 已修复（PR #2） |
+| 7 | AIPD | CLI 与 `_repo_root` 仓库布局解耦 | 部署 | ✅ 已修复（PR #2，fallback 方案） |
+
+**修复验证**：Vencertia 定向子集 65 passed、大子集 593 passed 零新增失败；AIPD 相关子集 47 passed、全量 1063 passed 零新增失败（另顺带修复 32 个既有失败）。全部 18 个变更文件推送后完成字节级校验。
+
+**残余项**（未修，记录在案）：工作认领竞态（next_work 无状态守护）、校准结算粒度粗糙 + 预测重复注册（Brier/ECE 统计纯度）、AIPD 匿名注册自授权（安全，见审查报告 C1）——建议作为下一批修复。
 
 **SKILL 层不需要、也不应该编码这些 bug 的规避话术**（prompt 是软约束，用它盖代码缺陷是反模式）；SKILL 层已做的是结构性的：强制原样呈现引擎状态标签、NO_GO/ABSTAIN 不得美化、交接时假设状态不得丢失。
 
 ## SKILL 层已补缺口（本次评估同步完成）
 
 - SKILL.md 新增「部署前置检查」节：引擎安装、凭据、AIPD 仓库布局约束的预检顺序——这是评估发现的唯一 SKILL 级结构缺口（链路等部署，部署未预检则第一环就断）。
+- 修复 7 落地后，AIPD CLI 已可在任意目录运行，`references/backends.md` 中"须在源码仓库目录内运行"的约束在 PR #2 合并后失效，届时应更新该文档。
