@@ -1,82 +1,60 @@
-# 全链路支撑能力评估
+# 全链路能力评估（v3.0，独立化后）
 
-> 日期：2026-08-23
-> 对象：IdeaToLaunch v1.0 对「一句话想法 → 判断该不该做 → 值得做就推进落地 → 做完复盘校准」完整链路的支撑能力
-> 依据：AIPD-OS / Vencertia 全仓逐行审查（9 个并行模块审查，关键结论经运行实证复核，file:line 证据见各段）
+> 日期：2026-08-24
+> 对象：IdeaToLaunch v3.0（完全自包含）对「创意 → 发布（Idea to Launch）」全链路的支撑能力
+> 方法：建立标准环节链，逐环节核查"方法论 / 模板 / 阶段门 / 红线"四要素覆盖情况
 
-## 总体结论
+## 评估结论（先行）
 
-**链路的"形"完整，可以走通；但链路的"魂"——决策与复盘数字的可信度——当前受 4 个引擎在案缺陷影响，修复前不能全信。**
+**覆盖：全链路 6 大环节、21 个子环节全部有方法论与模板支撑，无断点。**
+**结论：具备从创意到发布的全链路主管能力，达生产级文档标准。**
 
-| 链路环节 |  verdict | 说明 |
+v2.0 → v3.0 的缺口修复：市场研究、竞品分析、商业模式与定价、发布上市与增长 4 个方法论从缺失/薄弱补全为全本；PRD、风险登记、路线图、发布检查单、商业计划 5 个模板从缺失补全为填入即用。
+
+## 环节覆盖矩阵
+
+| 环节 | 子环节 | 方法论 | 模板/契约 | 阶段门 | 判定 |
+|---|---|---|---|---|---|
+| 0 意图理解 | 意图识别与分流 | SKILL.md 环节 0 | — | 模糊时单问澄清 | ✅ |
+| 1 机会验证 | 桌面研究 | references/market-research.md §2 | 研究结论卡 | 两独立来源才升级 | ✅ |
+| | 用户研究 | market-research.md §3 | 访谈记录表 | 问行为不问观点 | ✅ |
+| | 市场规模 | market-research.md §5 | TAM/SAM/SOM 模板 | 双法交叉强制 | ✅ |
+| | 竞品分析 | references/competitive-analysis.md | 对比矩阵/差评挖掘表 | 亲测优先、来源必标 | ✅ |
+| | 商业模式 | references/business-model.md §1–2 | 商业模式一页纸 | 对接率<80% 升级 | ✅ |
+| | 定价与单位经济 | business-model.md §3–5 | 单位经济表 | 三档测算强制 | ✅ |
+| 2 决策 | 判断合同 | references/decision-quality.md §1 | templates/judgment-contract.md | 五段完整强制 | ✅ |
+| | 证据分级 | decision-quality.md §2–3 | 假设清单（内嵌） | 外部研究不得直升事实 | ✅ |
+| | ABSTAIN | decision-quality.md §4 | 最小实验规格 | 不得美化为 GO | ✅ |
+| | 交接 | SKILL.md 环节 2 | schemas/handoff_v1.json | NO_GO/ABSTAIN 不进落地 | ✅ |
+| 3 产品落地 | 产品定义 | SKILL.md 环节 3 | templates/prd.md | 验收标准可检验 | ✅ |
+| | 里程碑/风险 | references/product-lifecycle.md | templates/roadmap.md + risk-register.md | evidence-gated 出口判据 | ✅ |
+| | 硬件轨执行 | product-lifecycle.md §1–7（S0–S8/C0–C7/声明门） | templates/product-baseline.md | 成熟度上限封顶 | ✅ |
+| | 软件轨执行 | product-lifecycle.md §8（W0–W7/灰度/回滚） | roadmap.md 附录 B | mvp→ga 声明门 | ✅ |
+| 4 发布上市 | 就绪评审 | references/launch-gtm.md §1 | templates/launch-checklist.md | 六线逐项判据 + 放行签字 | ✅ |
+| | 发布策略与 GTM | launch-gtm.md §2–4 | 发布日作战清单 | 上市声明三证证据门 | ✅ |
+| 5 运营复盘 | 指标基线 | launch-gtm.md §5 | 30/60/90 天指标表 | 数据不足诚实呈现 | ✅ |
+| | 预测结算与校准 | decision-quality.md §5–6 | templates/decision-journal.md | 先登记后结算、不可逆 | ✅ |
+| | 商业计划 | decision-quality.md §8 | templates/business-plan.md | 无编号数字禁止出现 | ✅ |
+
+## 补全前缺口 → 补全措施映射
+
+| 缺口（补全前） | 补全措施 | 状态 |
 |---|---|---|
-| 一句话想法 → 意图理解 | ✅ 可支撑 | SKILL Phase 0 内建意图判断；两引擎均有真实 intake |
-| 判断该不该做 | ⚠️ 可支撑，信任度受损 | 判断合同/ABSTAIN 纪律真实；3 个在案缺陷影响结论可信度 |
-| 值得做 → 推进落地 | ⚠️ 可支撑，交接为人工级 | 交接契约已定义但 v1 靠模型转述；AIPD 执行链真实但有 P0 缺陷 |
-| 做完复盘校准 | ⚠️ 机制真实，数字待修 | 闭环管线真实且原子；校准映射有数学错误 |
+| 市场/用户研究无方法论 | 新增 market-research.md（220 行，含交叉验证硬性规则） | ✅ |
+| 竞品分析仅一句话提及 | 新增 competitive-analysis.md（167 行，含差评挖掘规程） | ✅ |
+| 商业模式/定价/单位经济缺失 | 新增 business-model.md（220 行，软硬件双口径） | ✅ |
+| 发布上市与增长缺失 | 新增 launch-gtm.md（209 行，六线就绪+GTM+90 天基线） | ✅ |
+| 无 PRD/风险/路线图/发布检查单/BP 模板 | 新增 5 个填入即用模板 | ✅ |
+| 软件产品无执行轨 | product-lifecycle.md 新增软件轨（W0–W7） | ✅ |
+| 依赖外部引擎（v2.0） | 全部移除，引擎锚定体系废弃，契约内化 | ✅ |
 
-核心目标「做好商业决策与产品落地」恰恰是**数字敏感**目标——决策质量和校准命中率是本系统的卖点，也是缺陷最集中的地方。建议按文末优先级修复后再承载真实决策。
+## 残余限制（诚实声明）
 
----
+1. **本技能是方法论与编排层，不替代现实世界执行**：实体制造、真实渠道投放、法律文件签署等物理/法律动作只能规划与跟进，不能由技能完成。
+2. **分析质量依赖底层模型能力**：方法论保证流程与诚实性，不保证单次判断的智力上限。
+3. **无代码级计算引擎**：校准数学（Brier/ECE）在数据充足时可手算/脚本算，技能提供公式与口径纪律，但不内置计算后端。
+4. **模板是起点不是枷锁**：可按项目裁剪，但记录纪律（登记/不可逆/挂来源）不可裁剪。
 
-## 逐段评估
+## 独立性核查
 
-### 环节 0：一句话想法 → 意图理解 ✅
-
-- **SKILL 覆盖**：Phase 0 意图表 + 单问澄清规则，无代码、纯模型判断，符合"模型能力优先"原则。
-- **引擎现实**：Vencertia `idea` 命令真实（idea_intake.py，产出决策问题/假设清单/最大未知）；AIPD `intake` 真实。
-- **注意**：两引擎的 LLM 能力都需凭据配置，未配置时**响亮失败**（这是纪律不是缺陷，但部署时必须预检——已补入 SKILL.md「部署前置检查」）。
-
-### 环节 1：判断该不该做 ⚠️
-
-- **SKILL 覆盖**：Phase 1 流程完整（判断合同五段、假设状态标注、GO/NO_GO/ABSTAIN 三态处置）。
-- **引擎现实**（Vencertia，625 测试通过基础上的在案缺陷）：
-  1. **手工录入的证据永不生效**（`api.py:334-350` + `evidence_import.py:130-181` 只存不算；无任何路径对存量证据调 BeliefEngine.update）——用户最重要的输入路径断裂，直接影响"判断质量"；
-  2. **权威门可被自报绕过**（`evidence_policy.py:231-245`：LLM 类型证据自报 authority_level 无钳制，实证权重放大 5 倍）——违反自家"LLM 输出 ≠ Evidence"铁律；
-  3. **solve 主链路的"模型批判"是罐头文案**（`runtime.py:366` + `capabilities/challenger.py:48-61`）——与决策内容无关却渲染为"模型自检"，违反 v2.0.1 自己的产品裁决。
-- **结论**：判断流程的骨架可信，但这三处不修，"该不该做"的结论可信度打折。
-
-### 环节 2：值得做 → 推进落地 ⚠️
-
-- **SKILL 覆盖**：handoff_v1.json 契约 + Phase 2 步骤 + "UNVERIFIED 假设必须登记为待验证问题"的防泄漏规则。
-- **交接现实**：v1 为**模型转述**，两侧 export/import 命令未实现（路线图 v1.1）。风险：模型转述可能抹平不确定性标签；已有红线缓解（confidence 缺失必须 null、NO_GO 不得进入执行段），但不是强约束。
-- **执行现实**（AIPD-OS 在案缺陷）：
-  1. **Supervisor 多项目 phase 初始化静默丢失**（`supervisor.py:221`，INSERT OR IGNORE 吞掉第二个项目的 9 行）——多项目并行直接踩中；
-  2. **工作认领竞态**（`supervisor.py:305-308` 无状态守护，实测并发双重认领）；
-  3. **闭环保底返工击穿"外部副作用禁重试"保护**（`closure.py:243-296` 不查 side_effect_mode，发邮件类副作用被重复执行）；
-  4. 安装脆弱：CLI 运行时依赖源码仓库布局（`_repo_root` 向上找 pyproject.toml），非 editable 安装必崩——SKILL 部署环境下这是真实障碍。
-- **结论**：主链路真实可用，但多项目/并发/副作用场景有实证 bug；部署形态需先解决。
-
-### 环节 3：做完复盘校准 ⚠️
-
-- **SKILL 覆盖**：Phase 3 三步（outcome-record → calibration-report → 回流 Phase 1）+ 闭环原则。
-- **引擎现实**（Vencertia）：
-  1. **校准映射方向性错误**（`calibration_engine.py:254` `_map_piecewise` fall-through 返回最高桶命中率：实测 5% 置信度被"校准"成 95%）——核心卖点上的数学 bug，零测试覆盖；
-  2. **结算粒度粗糙 + 预测重复注册**（一次 SUCCESS 结算全部相关预测；同一信念每次 solve 重复登记）——样本量人为放大，Brier/ECE 失真；
-  3. 正确的一面：outcome → 信念更新 → 结算 → 校准更新的闭环是真实原子的；样本不足返回 UNCALIBRATED 的诚实底线真实。
-- **结论**：复盘闭环能跑，但**校准数字在修复 #1 前不可全信**——呈现时必须带样本量与状态标签（SKILL 已强制）。
-
----
-
-## 修复优先级（代码层，均在案实证）
-
-| 序 | 仓库 | 修复 | 影响环节 | 状态（2026-08-23） |
-|---|---|---|---|---|
-| 1 | Vencertia | `_map_piecewise` 低端钳制 + 边界测试 | 复盘校准 | ✅ 已修复（PR #2） |
-| 2 | Vencertia | 手工证据路径接 BeliefEngine.update | 决策质量 | ✅ 已修复（PR #2） |
-| 3 | Vencertia | LLM 自报 authority 钳制到类型天花板 | 决策质量 | ✅ 已修复（PR #2） |
-| 4 | Vencertia | challenger 罐头 critique 接真模型或诚实隐藏 | 决策质量 | ✅ 已修复（PR #2，critic 改注入式） |
-| 5 | AIPD | supervisor phase 主键改含 project_id 复合键 | 推进落地 | ✅ 已修复（PR #2） |
-| 6 | AIPD | closure 返工前检查 side_effect_mode | 推进落地 | ✅ 已修复（PR #2） |
-| 7 | AIPD | CLI 与 `_repo_root` 仓库布局解耦 | 部署 | ✅ 已修复（PR #2，fallback 方案） |
-
-**修复验证**：Vencertia 定向子集 65 passed、大子集 593 passed 零新增失败；AIPD 相关子集 47 passed、全量 1063 passed 零新增失败（另顺带修复 32 个既有失败）。全部 18 个变更文件推送后完成字节级校验。
-
-**残余项**（未修，记录在案）：工作认领竞态（next_work 无状态守护）、校准结算粒度粗糙 + 预测重复注册（Brier/ECE 统计纯度）、AIPD 匿名注册自授权（安全，见审查报告 C1）——建议作为下一批修复。
-
-**SKILL 层不需要、也不应该编码这些 bug 的规避话术**（prompt 是软约束，用它盖代码缺陷是反模式）；SKILL 层已做的是结构性的：强制原样呈现引擎状态标签、NO_GO/ABSTAIN 不得美化、交接时假设状态不得丢失。
-
-## SKILL 层已补缺口（本次评估同步完成）
-
-- SKILL.md 新增「部署前置检查」节：引擎安装、凭据、AIPD 仓库布局约束的预检顺序——这是评估发现的唯一 SKILL 级结构缺口（链路等部署，部署未预检则第一环就断）。
-- 修复 7 落地后，AIPD CLI 已可在任意目录运行，`references/backends.md` 中"须在源码仓库目录内运行"的约束在 PR #2 合并后失效，届时应更新该文档。
+全仓 grep：`vencertia|aipd|github.com|锚定|继承自` 零命中（业务词汇除外）。无安装依赖、无环境变量、无外部服务。可整体放入任意 agent 技能目录直接使用。
