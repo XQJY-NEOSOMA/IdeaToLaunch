@@ -1,45 +1,29 @@
-# 后端引擎：安装、配置与命令面
+# 可选引擎锚定（原"后端"文档）
 
-IdeaToLaunch 编排两个独立引擎。两者保持独立仓库、独立数据库、独立版本线。
+> IdeaToLaunch v2.0 起为**独立运作优先**：引擎不在场时全链路照常运行。
+> 引擎在场时的唯一增益是**真相锚定**——把账本、校准数学、状态持久化、签名发布交给确定性代码。
 
-## Vencertia（决策质量引擎）
+## 探测（每次会话一次）
 
-- 仓库：https://github.com/qq547820639/Vencertia-Intelligence-Lab（v2.0.1）
-- 安装：`pip install -e .`（Python ≥ 3.11；依赖 pydantic/FastAPI/typer/httpx）
-- LLM 配置：`MODEL_PROVIDER=openai_compatible` + 端点凭据；未配置时响亮失败（无静默降级）
-- 命令面（以 `vencertia --help` 为准）：
+- `vencertia --help` 可用 → Vencertia 在场（决策质量锚）
+- `aipd --help` 可用 → AIPD-OS 在场（产品开发锚）
 
-| 任务 | 命令 |
-|---|---|
-| 想法入口 | `vencertia idea "<文本>" [--json]` |
-| 完整求解 | `vencertia solve ...` / `quick-solve ...` |
-| 决策编译/评估/敏感度/追踪 | `decision-compile / decision-evaluate / decision-sensitivity / decision-trace` |
-| 证据 | `evidence-add / evidence-bind / evidence-import` |
-| 研究 | `research-plan / research-run` |
-| 实验 | `experiment-propose <decision_id>` |
-| 结果登记 | `outcome-record <action_id> <result>` |
-| 预测 | `prediction-create / prediction-resolve` |
-| 校准 | `calibration-report [--scope ALL]` |
-| 商业计划 | `vencertia bp ...` |
-| 回归基准 | `benchmark-run --level L0|L1|L2` |
+## 锚定规则
 
-## AIPD-OS（产品开发执行引擎）
+| 能力 | 独立模式（默认） | 锚定模式 |
+|---|---|---|
+| 判断合同/假设清单 | 模型产出（references/decision-quality.md） | `vencertia idea` / `solve` |
+| 预测登记/结算/校准 | 决策日志模板 + 命中率自查 | `prediction-create/resolve` + `calibration-report`（Brier/ECE） |
+| 商业计划 | 模型按七章结构生成，数字挂假设清单 | `vencertia bp` |
+| 产品基线/生命周期 | 产品基线模板 + 生命周期全本 | `aipd init/intake/run-supervisor` |
+| BOM/成本 | 模型维护，标数据来源 | `aipd bom add` / `cost calc` |
+| 发布验证 | 不可声称 | `aipd release check`（Ed25519 验签链） |
 
-- 仓库：https://github.com/qq547820639/AIPD-OS（v5.10）
-- 安装：`pip install -e ".[dev]"`（Python ≥3.9,<3.13；核心仅依赖 jsonschema，CAD/图像等为可选 extra）
-- 须在源码仓库目录内运行（其 CLI 运行时依赖仓库布局）
-- 命令面（以 `aipd --help` 为准，主线 30 个命令）：
+## 引擎安装（仅在需要锚定时）
 
-| 任务 | 命令（示例） |
-|---|---|
-| 初始化/想法录入 | `aipd init` / `aipd intake` |
-| 推进工作队列 | `aipd run-supervisor` |
-| 决策处理 | `aipd submit-decision` |
-| 手册/CAD | `aipd manual generate` / `aipd cad preflight` / `aipd cad build` |
-| BOM/成本 | `aipd bom add --unit-cost ...` / `aipd cost calc` |
-| 工业化/验证 | `aipd industrialize` / `aipd validate` |
-| 体检/发布 | `aipd doctor` / `aipd release check` / `aipd package` |
+- Vencertia：https://github.com/qq547820639/Vencertia-Intelligence-Lab ，`pip install -e .`（Python ≥3.11），LLM 需配 `MODEL_PROVIDER=openai_compatible` + 端点凭据（未配置会响亮失败，属纪律）。
+- AIPD-OS：https://github.com/qq547820639/AIPD-OS ，`pip install -e ".[dev]"`（Python ≥3.9,<3.13，核心仅依赖 jsonschema）；自 v5.10 修复后 CLI 可在任意目录运行。
 
-## 健康检查顺序
+## 红线
 
-引擎报"不可用"时先查：① 是否已安装且在当前环境可 import；② 凭据/环境变量；③ AIPD 是否在仓库目录内运行。仍不行则如实告知用户并转入降级模式（SKILL.md「诚实降级」节）。
+独立模式下**不得声称**完成了引擎级验证（校准分数、签名发布、门禁冻结）。需要这些声明时，引导用户安装引擎转入锚定模式。
