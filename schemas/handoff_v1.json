@@ -1,28 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/qq547820639/IdeaToLaunch/schemas/handoff_v1.json",
+  "$id": "handoff_v1.json",
   "title": "Decision-to-Execution Handoff Contract v1",
-  "description": "Vencertia 决策结论 → AIPD-OS 产品 intake 的交接格式。版本化、文件级，是两套系统之间唯一允许的互操作形式。",
+  "description": "IdeaToLaunch 环节 2（决策）→ 环节 3（产品落地）的交接格式。版本化、文件级，是决策结论进入产品落地的唯一通道。",
   "type": "object",
-  "required": ["contract_version", "source", "decision_question", "recommendation", "key_assumptions", "critical_uncertainties"],
+  "required": ["contract_version", "project", "decision_question", "recommendation", "key_assumptions", "critical_uncertainties"],
   "properties": {
     "contract_version": {"const": "1.0"},
-    "source": {
+    "project": {
       "type": "object",
-      "required": ["system", "project_id"],
+      "required": ["name"],
       "properties": {
-        "system": {"const": "vencertia"},
-        "project_id": {"type": "string"},
-        "decision_id": {"type": "string"},
-        "exported_at": {"type": "string", "format": "date-time"}
+        "name": {"type": "string"},
+        "decision_log_ref": {"type": "string", "description": "决策日志条目编号或路径"},
+        "decided_at": {"type": "string", "format": "date-time"}
       }
     },
     "decision_question": {"type": "string", "description": "原始决策问题"},
-    "recommendation": {"enum": ["GO", "NO_GO", "ABSTAIN"], "description": "决策结论。NO_GO/ABSTAIN 时不应进入执行段。"},
+    "recommendation": {"enum": ["GO", "NO_GO", "ABSTAIN"], "description": "决策结论。NO_GO/ABSTAIN 时不应进入落地环节。"},
     "confidence": {
       "type": ["number", "null"],
       "minimum": 0, "maximum": 1,
-      "description": "校准后置信度；样本不足或未校准时必须为 null，不得编造"
+      "description": "置信度；样本不足或未经校准时必须为 null，不得编造"
     },
     "judgment_contract": {
       "type": "object",
@@ -39,19 +38,19 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["statement"],
+        "required": ["statement", "status"],
         "properties": {
           "statement": {"type": "string"},
           "status": {"enum": ["VERIFIED", "ESTIMATED", "ASSUMED", "UNVERIFIED"]},
           "evidence_refs": {"type": "array", "items": {"type": "string"}}
         }
       },
-      "description": "进入执行段时仍需跟踪的假设；每条必须带状态，UNVERIFIED 的假设在 AIPD 侧应登记为待验证问题"
+      "description": "进入落地环节时仍需跟踪的假设；UNVERIFIED 的假设必须登记为待验证问题"
     },
     "critical_uncertainties": {
       "type": "array",
       "items": {"type": "string"},
-      "description": "最大未知清单；AIPD 侧应将其转化为研究任务"
+      "description": "最大未知清单；落地环节应将其转化为研究任务"
     },
     "constraints": {
       "type": "array",
