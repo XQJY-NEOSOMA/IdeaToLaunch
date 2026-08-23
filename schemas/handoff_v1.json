@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/qq547820639/IdeaToLaunch/schemas/handoff_v1.json",
+  "title": "Decision-to-Execution Handoff Contract v1",
+  "description": "Vencertia 决策结论 → AIPD-OS 产品 intake 的交接格式。版本化、文件级，是两套系统之间唯一允许的互操作形式。",
+  "type": "object",
+  "required": ["contract_version", "source", "decision_question", "recommendation", "key_assumptions", "critical_uncertainties"],
+  "properties": {
+    "contract_version": {"const": "1.0"},
+    "source": {
+      "type": "object",
+      "required": ["system", "project_id"],
+      "properties": {
+        "system": {"const": "vencertia"},
+        "project_id": {"type": "string"},
+        "decision_id": {"type": "string"},
+        "exported_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "decision_question": {"type": "string", "description": "原始决策问题"},
+    "recommendation": {"enum": ["GO", "NO_GO", "ABSTAIN"], "description": "决策结论。NO_GO/ABSTAIN 时不应进入执行段。"},
+    "confidence": {
+      "type": ["number", "null"],
+      "minimum": 0, "maximum": 1,
+      "description": "校准后置信度；样本不足或未校准时必须为 null，不得编造"
+    },
+    "judgment_contract": {
+      "type": "object",
+      "description": "五段判断合同（可选但建议携带）",
+      "properties": {
+        "current_judgment": {"type": "string"},
+        "rationale": {"type": "string"},
+        "biggest_unknown": {"type": "string"},
+        "next_step": {"type": "string"},
+        "what_would_change_my_mind": {"type": "string"}
+      }
+    },
+    "key_assumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["statement"],
+        "properties": {
+          "statement": {"type": "string"},
+          "status": {"enum": ["VERIFIED", "ESTIMATED", "ASSUMED", "UNVERIFIED"]},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "description": "进入执行段时仍需跟踪的假设；每条必须带状态，UNVERIFIED 的假设在 AIPD 侧应登记为待验证问题"
+    },
+    "critical_uncertainties": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "最大未知清单；AIPD 侧应将其转化为研究任务"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "预算/时间/法规等硬约束"
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}
