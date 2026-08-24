@@ -85,6 +85,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | "怎么赚钱/怎么定价/商业模式" | 环节 1 商业模式模块 |
 | "确定要做了，做产品/PRD/图纸/BOM/手册" | 确认关键假设已验证后 → 环节 3 |
 | "怎么发布/上市/卖" | 环节 4（若未过决策验证，先补环节 1-2） |
+| "出一份投资 BP / 深度调研报告" | 环节 4.5（若未过决策验证，先补环节 1-2） |
 | "复盘/我判断准不准" | 环节 5 |
 | "从想法到发布全程带我走" | 完整链路 |
 | 模糊不清 | 只问一个二选一问题：先判断值不值得，还是直接推进实现？ |
@@ -119,6 +120,14 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 2. 按 `references/launch-gtm.md` 设计发布策略（灰度/众筹/预售/直发）与 GTM 渠道；
 3. **放行声明是证据门**：现货能力、合规文件、售后能力齐备才可宣布"上市"；签署放行声明（声明人/日期/证据清单）；
 4. 不得虚构销量、评价、认证。
+
+### 环节 4.5 · 成果交付（GO 后自动触发）
+
+决策为 GO 后，**自动进入成果转化链**（`references/deliverable-pipeline.md`）：想法素材自动转化为**投资 BP 或深度调研报告**——
+1. 先从账本生成素材汇集包（`templates/deliverable-brief.md`，素材包之外的数字不得成稿）；
+2. 环境中可用的专项技能按协作表自动介入（研究补强→财务建模→风险深化→成稿→图表→成品格式），缺席时用内建方法论回退；
+3. **可读性是最终产物**：交付前必须过可读性验收门（盲测三问 + 回挂检查），不过则返工；
+4. 交付物归档到工作区 `deliverables/` 子目录。
 
 ### 环节 5 · 运营复盘
 
@@ -156,6 +165,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `references/decision-quality.md` | 决策质量全本（判断合同/证据分级/ABSTAIN/校准） |
 | `references/product-lifecycle.md` | 产品开发生命周期全本（硬件+软件双轨） |
 | `references/launch-gtm.md` | 发布上市与增长全本 |
+| `references/deliverable-pipeline.md` | 成果转化链（GO→投资BP/深度调研报告，多技能协作协议） |
 | `templates/judgment-contract.md` | 判断合同 |
 | `templates/decision-journal.md` | 决策日志（预测登记/结算/命中率自查） |
 | `templates/research-log.md` | 研究日志（结论卡/假设台账/算式附录） |
@@ -165,6 +175,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/risk-register.md` | 风险登记表 |
 | `templates/launch-checklist.md` | 发布就绪检查单与放行声明 |
 | `templates/business-plan.md` | 商业计划书（七章，数字必须挂证据） |
+| `templates/deliverable-brief.md` | 素材汇集包（成果转化链统一输入契约） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
 | `scripts/init_workspace.py` | 工作区初始化（幂等） |
 | `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |
