@@ -123,11 +123,11 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 
 ### 环节 4.5 · 成果交付（GO 后自动触发）
 
-决策为 GO 后，**自动进入成果转化链**（`references/deliverable-pipeline.md`）：想法素材自动转化为**投资 BP 或深度调研报告**——
-1. 先从账本生成素材汇集包（`templates/deliverable-brief.md`，素材包之外的数字不得成稿）；
-2. 环境中可用的专项技能按协作表自动介入（研究补强→财务建模→风险深化→成稿→图表→成品格式），缺席时用内建方法论回退；
-3. **可读性是最终产物**：交付前必须过可读性验收门（盲测三问 + 回挂检查），不过则返工；
-4. 交付物归档到工作区 `deliverables/` 子目录。
+决策为 GO 后，**自动进入成果转化引擎**（`references/deliverable-pipeline.md`）：想法素材自动转化为**投资 BP 或深度调研报告**——
+1. 模块 1 产出项目简报（`templates/deliverable-brief.md`，含输入规格核对；必需信息缺失则出澄清清单并暂停）；
+2. 十个内部模块按"阶段推进 + 回流迭代"协作（研究/数据→战略/财务/风险→写作→可读性工程→质量门禁→版本迭代），模块间只通过统一数据契约交换信息；
+3. **可读性是最终交付标准**：六维评分（总分 ≥80 且单项 ≥12）不过不得进质量门禁，质量门禁不过不得放行；
+4. 交付物（主文档+附录包+可读性/质量报告+版本记录）归档到工作区 `deliverables/` 子目录。
 
 ### 环节 5 · 运营复盘
 
@@ -165,7 +165,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `references/decision-quality.md` | 决策质量全本（判断合同/证据分级/ABSTAIN/校准） |
 | `references/product-lifecycle.md` | 产品开发生命周期全本（硬件+软件双轨） |
 | `references/launch-gtm.md` | 发布上市与增长全本 |
-| `references/deliverable-pipeline.md` | 成果转化链（GO→投资BP/深度调研报告，多技能协作协议） |
+| `references/deliverable-pipeline.md` | 成果转化引擎（内部模块内聚的商业文档一体化生成） |
 | `templates/judgment-contract.md` | 判断合同 |
 | `templates/decision-journal.md` | 决策日志（预测登记/结算/命中率自查） |
 | `templates/research-log.md` | 研究日志（结论卡/假设台账/算式附录） |
@@ -175,7 +175,9 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/risk-register.md` | 风险登记表 |
 | `templates/launch-checklist.md` | 发布就绪检查单与放行声明 |
 | `templates/business-plan.md` | 商业计划书（七章，数字必须挂证据） |
-| `templates/deliverable-brief.md` | 素材汇集包（成果转化链统一输入契约） |
+| `templates/deliverable-brief.md` | 项目简报（成果转化引擎统一输入契约） |
+| `templates/readability-report.md` | 可读性报告（六维评分，阈值 80/12） |
+| `templates/quality-report.md` | 质量核对报告（8 项门禁） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
 | `scripts/init_workspace.py` | 工作区初始化（幂等） |
 | `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |
