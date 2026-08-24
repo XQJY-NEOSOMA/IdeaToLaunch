@@ -1,0 +1,11 @@
+{
+  "name": "investment-memo",
+  "source": "/app/.agents/skills/investment-memo（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "模块 7（A 线文字投资 BP 方法论）",
+  "applicability_boundary": "数字挂账本编号/数据不足标注纪律由集成层覆盖",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
