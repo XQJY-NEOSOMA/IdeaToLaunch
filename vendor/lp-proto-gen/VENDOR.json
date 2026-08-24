@@ -1,0 +1,11 @@
+{
+  "name": "lp-proto-gen",
+  "source": "/app/.agents/skills/lp-proto-gen（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 4 GTM 内容资产（产品落地页原型）",
+  "applicability_boundary": "生成落地页 HTML 原型（离线）；正式发布页面需人工设计与合规审校",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
