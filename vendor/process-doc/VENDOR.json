@@ -1,0 +1,11 @@
+{
+  "name": "process-doc",
+  "source": "/app/.agents/skills/process-doc（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 4 售后线（SOP/RACI/流程文档）",
+  "applicability_boundary": "售后与运营流程文档化；业务流程决策仍升级用户",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
