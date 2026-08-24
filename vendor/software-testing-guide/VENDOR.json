@@ -1,0 +1,11 @@
+{
+  "name": "software-testing-guide",
+  "source": "/app/.agents/skills/software-testing-guide（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 验证测试体系（QA 流程）",
+  "applicability_boundary": "测试策略/用例/缺陷分级/质量指标；硬件 EVT/DVT/PVT 仍以 product-lifecycle.md 为准",
+  "dedup_note": "test-suite-architect（英文版，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
