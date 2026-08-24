@@ -19,7 +19,9 @@
 
 ## 假设跟踪（来自决策阶段的交接）
 
-| # | 假设 | 状态 | 验证计划 | 结果 |
+> 本表一律使用**四态标签**（VERIFIED/ESTIMATED/ASSUMED/UNVERIFIED，与 pipeline 解析口径一致）；上方"关键参数表"使用八态标签。两套标签分工与映射见 references/decision-quality.md §二。
+
+| # | 假设 | 状态（四态） | 验证计划 | 结果 |
 |---|---|---|---|---|
 | 1 | | UNVERIFIED | | |
 

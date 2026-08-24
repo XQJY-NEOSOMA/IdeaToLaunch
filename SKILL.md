@@ -44,8 +44,20 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 2. **证据不足就明说。** 宁可输出"暂不决策 + 一个最小实验"，也不编造漂亮答案。ABSTAIN 是一等输出，不是失败。
 3. **你不替用户做决定。** 方向选择、大额投入、安全合规、量产放行——这些时刻必须升级给用户，且以结构化决策包呈现（推荐 + 理由 + 选项 + 影响 + 证据 + 不确定性）。
 4. **模型负责理解与编排，记录纪律守护真相与账本。** 你维护的决策日志与产品基线就是账本——**记下的预测和结论不许事后涂改**，只能追加更正记录。
-5. **每个结论都能回答"从哪来的"。** 数字必须挂到假设编号或证据来源上；没有数据的地方标"数据不足"。**所有算术（市场规模、单位经济、成本加成、命中率）必须用 `scripts/calc.py` 完成并把算式回显粘进 `research_log.md` 算式附录，禁止心算入文；calc.py 不覆盖的计算用其他计算工具并保留算式。**
+5. **每个结论都能回答"从哪来的"。** 数字必须挂到假设编号或证据来源上；没有数据的地方标"数据不足"。**所有算术（市场规模、单位经济、成本加成、命中率）必须用 `scripts/calc.py` 完成并把算式回显粘进 `research_log.md` 算式附录；calc.py 不覆盖的计算用 calc.py 的 expr 子命令或其他计算工具并保留算式。零散量级估算（如耗材估重）允许心算，但必须就近标注"心算量级"。**
 6. **绝不把"能力不可用 / 证据不足 / NO_GO"包装成成功。**
+
+## 环节豁免（scope，可选）
+
+用户明确承担风险跳过某环节时，在 `handoff.json` 中声明 `scope` 字段，链路体检才能区分"合法跳过"与"未完成"：
+
+```json
+"scope": {"waived_stages": ["1"], "no_launch": true, "note": "用户明确承担风险跳过验证"}
+```
+
+- `waived_stages`：被豁免环节标 `waived`（仅可豁免 1/3/4/4.5/5；工作区与决策环节不可豁免）；
+- `no_launch`：无发布/交付意图时置 true，环节 4/4.5 保持 `pending` 而非 `fail`；
+- `note`：豁免理由（用户知情声明引用），必须填写。
 
 ## 呈现层契约（所有面向用户的交付物）
 
@@ -155,6 +167,24 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 4. 不虚构数据、来源、销量、认证或任何现实世界事件；
 5. 不声称完成需要现实世界证据的验证（实体测试、报价、认证、真人试用）——只能规划与跟进。
 
+## 单一权威表（2026-08-24 冻结，GO/B+ 决策产物）
+
+同一主题存在多份文档时，**只读权威列**，其余为备查。禁止同题混用两套方法论。
+
+| 主题 | 唯一权威（先读且只读） | 备查（显式需要才打开） |
+|---|---|---|
+| PRD 撰写 | `templates/prd.md`（契约与纪律） | `vendor/idea-to-prd/`（生成方法） |
+| 里程碑/排期 | `templates/roadmap.md` | `vendor/gantt-chart-builder/`（可视化） |
+| 发布放行 | `templates/launch-checklist.md` | `vendor/compliance-review-planner/`、`vendor/tos-clause-scanner/` |
+| 商业计划 BP | `templates/business-plan.md` + `scripts/assemble_bp.py` | `vendor/investment-memo/`、`vendor/fundraising-bp-planner/` |
+| 市场研究 | `references/market-research.md` | `vendor/market-insight-report/`（成稿风格） |
+| 单位经济/计算 | `scripts/calc.py` | `vendor/saas-metrics-coach/`（SaaS 专项）、`vendor/pricing-strategy/`（定价深化） |
+| 风险 | `templates/risk-register.md` | `vendor/risk-heatmap/`（热力图） |
+| 软件测试 | `references/product-lifecycle.md` §8 | `vendor/software-testing-guide/` |
+| 长文报告 | `references/deliverable-pipeline.md` | `vendor/report-writing/` |
+
+**功能冻结声明**：自 2026-08-24 起冻结新功能与新增内置技能；后续变更只允许由真实使用摩擦驱动（判断合同存档：本项目工作区 real-use/IdeaToLaunch自身演进-20260824）。
+
 ## 文档索引
 
 | 文件 | 内容 |
@@ -179,6 +209,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/readability-report.md` | 可读性报告（六维评分，阈值 80/12） |
 | `templates/quality-report.md` | 质量核对报告（8 项门禁） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
+| `docs/iteration-review.md` | 真实使用迭代总报告（R1–R7） |
 | `vendor/` | 内置集成的 21 个官方技能（离线可用；注册表与边界见 `vendor/README.md`） |
 | `scripts/init_workspace.py` | 工作区初始化（幂等） |
 | `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |

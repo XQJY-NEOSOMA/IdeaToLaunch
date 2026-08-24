@@ -126,6 +126,35 @@
       "items": {
         "type": "string"
       }
+    },
+    "scope": {
+      "type": "object",
+      "description": "范围声明（可选）：豁免环节与发布意图。waived_stages 中的环节在链路体检中标 waived（需用户知情）；no_launch=true 时环节 4/4.5 保持 pending 而非 fail。",
+      "properties": {
+        "waived_stages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "1",
+              "3",
+              "4",
+              "4.5",
+              "5"
+            ]
+          },
+          "description": "用户知情豁免的环节（决策环节 2 与工作区环节 0 不可豁免）"
+        },
+        "no_launch": {
+          "type": "boolean",
+          "description": "本项目无发布/交付意图时置 true"
+        },
+        "note": {
+          "type": "string",
+          "description": "豁免理由（用户知情声明引用）"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
