@@ -35,7 +35,11 @@
 | `init_workspace.py` | 创建项目工作区并初始化法定账本（幂等，绝不覆盖账本） |
 | `calc.py` | 单位经济（LTV/CAC/回本期）、TAM 双法交叉、硬件 BOM→零售加成链、校准统计（Brier/ECE，样本不足机械化拒答）——输出含算式回显 |
 | `validate_handoff.py` | 按 schema 校验交接包（规则从 schema 读取，单一事实源） |
-| `selftest.py` | 15 项自测断言 |
+| `selftest.py` | 28 项自测断言 |
+
+## 内置集成的官方技能（vendor/，离线可用）
+
+9 个 Kimi 官方已验证技能以整体搬运方式内置（DCF 估值、SaaS 指标、定价、风险热力图、数据图表、报告写作方法论、市场洞察、投资 BP、融资大纲），全部离线独立运行。注册表、去重记录与职能边界见 `vendor/README.md`。
 
 ## 使用
 

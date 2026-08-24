@@ -138,6 +138,6 @@
 4. **风险与财务冲突**：模块 6 发现重大风险可要求模块 5 补充情景分析，不得直接修改主预测；
 5. **反馈迭代冲突**：评审反馈按归属分发模块；修改后必须重新过可读性与质量门禁，不允许局部修改后直接发布。
 
-## 附录：外部技能加速映射（可选，非架构组成）
+## 附录：模块的内建实现（vendor/ 内置集成）
 
-运行环境若存在同能外部技能，模块执行时可作加速器：研究情报→deep-research-swarm；财务建模→discounted-cashflow-model/cashflow-valuation + xlsx；风险→risk-heatmap；写作→report-writing/investment-memo；图表→chart-gen/data-viz-gen；成品格式→docx。**约束：加速器输出必须过同样的数据契约与质量门禁，且不得写入账本；缺席时模块由编排者按 references/ 内建方法论自行完成。**
+自 v3.6 起，以下官方技能以整体搬运方式内置于 `vendor/`（离线可用，元信息见 `vendor/README.md`）：研究成稿→`vendor/market-insight-report/`；数据图表→`vendor/data-viz-gen/`；SaaS 专项→`vendor/saas-metrics-coach/`；定价深化→`vendor/pricing-strategy/`；估值→`vendor/cashflow-valuation/`；风险热力图→`vendor/risk-heatmap/`；写作方法论（B 线）→`vendor/report-writing/`；A 线 BP→`vendor/investment-memo/` + `vendor/fundraising-bp-planner/`。去重与职能边界见 `vendor/README.md`；无法内置的依赖（chart-gen 的 Node.js、docx 的 C# 工具链）已列明离线替代方案。

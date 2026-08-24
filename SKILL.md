@@ -125,7 +125,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 
 决策为 GO 后，**自动进入成果转化引擎**（`references/deliverable-pipeline.md`）：想法素材自动转化为**投资 BP 或深度调研报告**——
 1. 模块 1 产出项目简报（`templates/deliverable-brief.md`，含输入规格核对；必需信息缺失则出澄清清单并暂停）；
-2. 十个内部模块按"阶段推进 + 回流迭代"协作（研究/数据→战略/财务/风险→写作→可读性工程→质量门禁→版本迭代），模块间只通过统一数据契约交换信息；
+2. 十个内部模块按"阶段推进 + 回流迭代"协作（研究/数据→战略/财务/风险→写作→可读性工程→质量门禁→版本迭代），模块间只通过统一数据契约交换信息；模块的内建实现优先使用 `vendor/` 内置技能（离线可用，注册表见 `vendor/README.md`）；
 3. **可读性是最终交付标准**：六维评分（总分 ≥80 且单项 ≥12）不过不得进质量门禁，质量门禁不过不得放行；
 4. 交付物（主文档+附录包+可读性/质量报告+版本记录）归档到工作区 `deliverables/` 子目录。
 
@@ -179,6 +179,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/readability-report.md` | 可读性报告（六维评分，阈值 80/12） |
 | `templates/quality-report.md` | 质量核对报告（8 项门禁） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
+| `vendor/` | 内置集成的 9 个官方技能（离线可用；注册表与边界见 `vendor/README.md`） |
 | `scripts/init_workspace.py` | 工作区初始化（幂等） |
 | `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |
 | `scripts/validate_handoff.py` | 交接包契约校验 |

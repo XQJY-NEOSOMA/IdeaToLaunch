@@ -125,3 +125,13 @@ selftest 扩展至 28 项断言，全绿。
 6. **冲突处理规则 5 条**（事实/假设/可读性/风险财务/反馈迭代）。
 
 新增模板：`templates/readability-report.md`、`templates/quality-report.md`；`templates/deliverable-brief.md` 升级为含输入规格核对的项目简报。
+
+### v3.6 官方技能内置集成（2026-08-24）
+
+按"整体搬运/内置集成"标准将 9 个 Kimi 官方已验证技能并入 `vendor/`（约 396KB，全部提示词/脚本/知识数据/元信息完整复制）：cashflow-valuation、saas-metrics-coach、pricing-strategy、risk-heatmap、data-viz-gen、report-writing、market-insight-report、investment-memo、fundraising-bp-planner。
+
+- **离线验证**：5 个脚本全部纯标准库，逐一实跑冒烟通过（DCF 实算、热力图 HTML、SaaS 指标含诚实 `_missing` 报告、定价建模、信息图生成）；既有 selftest 28/28 无降级。
+- **去重**：discounted-cashflow-model（与 cashflow-valuation 脚本逐字节相同）、market-research-brief（英文版）、investor-pitch-planner（职能重合）不搬运；chart-gen 因 Node.js 运行时无法离线内置，由 data-viz-gen 替代。
+- **职能边界防重复**：calc.py 保留（账本纪律/TAM/加成链/校准为官方所无）；SaaS 专项、定价深化、风险热力图、BP 方法论的分工写入 `vendor/README.md`。
+- **元信息**：每个内置技能含 VENDOR.json（来源/搬运日期/许可证/适用边界/去重说明/依赖）。
+- **无法内置依赖**：chart-gen 的 Node.js（已替代）、docx 的 C# 工具链（成品保持 Markdown 直出）。
