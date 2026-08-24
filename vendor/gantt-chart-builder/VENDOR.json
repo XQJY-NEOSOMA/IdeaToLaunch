@@ -1,0 +1,11 @@
+{
+  "name": "gantt-chart-builder",
+  "source": "/app/.agents/skills/gantt-chart-builder（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 里程碑可视化（甘特图/CPM）",
+  "applicability_boundary": "templates/roadmap.md 保留双轨骨架与出口判据契约；本技能负责可视化与关键路径分析",
+  "dedup_note": "gantt-planner（英文版，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
