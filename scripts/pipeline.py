@@ -47,7 +47,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 FOUR_STATES = ("VERIFIED", "ESTIMATED", "ASSUMED", "UNVERIFIED")
 
 # 状态图标（人类可读表格用）
-STATUS_ICON = {"pass": "✅", "fail": "❌", "blocked": "⛔", "pending": "⏳"}
+STATUS_ICON = {"pass": "✅", "fail": "❌", "blocked": "⛔", "pending": "⏳", "waived": "🚫"}
 
 # 各环节默认下一步建议命令（数据驱动，求值函数可按上下文覆盖）
 NEXT_ACTIONS = {
@@ -174,6 +174,7 @@ def load_handoff(workspace: Path):
     """读取并校验 handoff.json。
 
     返回 (是否存在, 校验错误列表, recommendation 或 None)。
+    另通过返回 dict 的 "scope" 键携带豁免声明（handoff scope 字段）。"
     校验复用 validate_handoff.py 的 validate 逻辑（schema 为单一事实源）。
     """
     path = workspace / "handoff.json"
@@ -194,32 +195,57 @@ def load_handoff(workspace: Path):
     schema = json.loads(validate_handoff.SCHEMA_PATH.read_text(encoding="utf-8"))
     errors: list = []
     validate_handoff.validate(data, schema, "", errors)
+    # 骨架识别：init_workspace 生成的占位骨架虽能通过 schema 校验，
+    # 但不代表已发生真实决策（decision_question 含待填写标记或为空）。
+    if isinstance(data, dict):
+        dq = str(data.get("decision_question") or "")
+        if not dq.strip() or "待填写" in dq:
+            errors.append("handoff.json 仍是未填写的骨架（decision_question 为占位内容）")
     rec = data.get("recommendation") if isinstance(data, dict) and not errors else None
     return True, errors, rec
+
+
+
+# 法定账本文件（只在其行文提及「放行声明」时不作候选，防噪音）
+_LEDGER_NAMES = {"decision_journal.md", "research_log.md", "judgment_contract.md",
+                 "product_baseline.md", "prd.md", "roadmap.md", "risk_register.md"}
+# 不放行判定词（出现即整份文件视为不放行，不论是否签署）
+_NO_RELEASE_RE = re.compile(r"不放行|不予放行|禁止发布|NO[_ ]RELEASE", re.I)
 
 
 def find_launch_release(workspace: Path):
     """在工作区（含 deliverables/）内查找已签署的 launch 放行声明文件。
 
-    识别规则：Markdown/文本文件内容含「放行声明」；已签署 = 「声明人」一行
-    的值非占位。返回 (已签署文件相对路径列表, 未签署文件相对路径列表)。
+    识别规则（R4 摩擦修订）：
+    - 只把「文件名含 launch/checklist/放行」的 .md/.txt 作为候选（账本文件行文提及不计）；
+    - 内容含不放行判定词 → 记为 denied（不放行），不论签署与否（防语义反转）；
+    - 已签署 = 「声明人」一行的值非占位。
+    返回 (signed, unsigned, denied) 三个相对路径列表。
     """
-    signed, unsigned = [], []
+    signed, unsigned, denied = [], [], []
     if not workspace.is_dir():
-        return signed, unsigned
+        return signed, unsigned, denied
     for p in sorted(workspace.rglob("*")):
         if not p.is_file() or p.suffix.lower() not in (".md", ".txt"):
+            continue
+        name = p.name.lower()
+        if p.name in _LEDGER_NAMES:
+            continue
+        if not any(k in name for k in ("launch", "checklist", "放行")):
             continue
         content = read_text(p)
         if content is None or "放行声明" not in content:
             continue
         rel = str(p.relative_to(workspace))
+        if _NO_RELEASE_RE.search(content):
+            denied.append(rel)
+            continue
         sig = re.search(r"声明人[^\n：:]*[：:]\s*(.+?)\s*$", content, re.M)
         if sig and not is_placeholder(sig.group(1)):
             signed.append(rel)
         else:
             unsigned.append(rel)
-    return signed, unsigned
+    return signed, unsigned, denied
 
 
 def main_documents(deliverables: Path):
@@ -338,8 +364,11 @@ def eval_stage4(ctx) -> dict:
     if rec != "GO":
         return _result("4", "发布上市", [], forced="pending",
                        note="可选环节：无 handoff GO + 发布意图，暂不进入")
-    signed, unsigned = find_launch_release(ctx["workspace"])
-    if signed:
+    signed, unsigned, denied = find_launch_release(ctx["workspace"])
+    if denied:
+        checks = [("放行声明通过", False,
+                   f"存在不放行声明（门保持关闭，正确行为）：{', '.join(denied)}")]
+    elif signed:
         checks = [(f"已签署放行声明（{', '.join(signed)}）", True, "")]
     elif unsigned:
         checks = [("放行声明已签署（声明人/日期/证据清单）", False,
@@ -403,6 +432,16 @@ STAGES = [
 ]
 
 
+def load_scope(workspace: Path) -> dict:
+    """读取 handoff.json 的 scope 豁免声明（无文件/无字段/非法 JSON 时为空 dict）。"""
+    try:
+        data = json.loads(read_text(workspace / "handoff.json"))
+    except Exception:  # noqa: BLE001
+        return {}
+    scope = data.get("scope") if isinstance(data, dict) else None
+    return scope if isinstance(scope, dict) else {}
+
+
 def build_context(workspace: Path) -> dict:
     """汇总各环节求值所需的只读上下文。"""
     return {
@@ -410,6 +449,7 @@ def build_context(workspace: Path) -> dict:
         "journal": read_text(workspace / "decision_journal.md"),
         "research_log": read_text(workspace / "research_log.md"),
         "handoff": load_handoff(workspace),
+        "scope": load_scope(workspace),
     }
 
 
@@ -418,7 +458,7 @@ def summarize(stages: list) -> dict:
     current_gate = 第一个 fail 环节，其次第一个 pending 环节，全无则 None。"""
     progress = None
     for s in stages:
-        if s["status"] in ("pass", "blocked"):
+        if s["status"] in ("pass", "blocked", "waived"):
             progress = s["id"]
         else:
             break
@@ -479,7 +519,23 @@ def main(argv=None) -> int:
         die(f"工作区路径不存在：{workspace}。先运行 python3 scripts/init_workspace.py <项目名> --dir <基目录> 初始化。")
 
     ctx = build_context(workspace)
-    stages = [evaluate(ctx) for _, _, evaluate in STAGES]
+    scope = ctx.get("scope") or {}
+    waived = set(scope.get("waived_stages") or [])
+    stages = []
+    for sid, name, evaluate in STAGES:
+        if sid in waived:
+            stages.append({
+                "id": sid, "name": name, "status": "waived",
+                "passed": 0, "total": 0, "missing": [],
+                "next_action": None,
+                "note": f"用户知情豁免（handoff scope：{scope.get('note', '未注明理由')}）",
+            })
+            continue
+        result = evaluate(ctx)
+        if scope.get("no_launch") and sid in ("4", "4.5") and result["status"] == "fail":
+            result["status"] = "pending"
+            result["note"] = "scope.no_launch=true：本项目无发布/交付意图，保持 pending"
+        stages.append(result)
     report = {
         "workspace": str(workspace),
         "stages": stages,
