@@ -10,11 +10,13 @@ research_log.md 的「算式附录」。
     tam             市场规模：自顶向下 × 自底向上双法交叉
     price-chain     硬件 BOM → 零售价加成链（口径见 references/business-model.md 2.6）
     calibration     预测校准：Brier / ECE（10 桶）；n<20 时拒绝输出数字（纪律机械化）
+    expr            通用表达式：白名单算术（消除"辅助算术灰色地带"，禁止心算入文）
 
 退出码：0 成功；2 输入或参数错误。
 """
 
 import argparse
+import ast
 import json
 import sys
 from pathlib import Path
@@ -169,6 +171,7 @@ def cmd_unit_economics(data: dict) -> dict:
     rule = (
         f"健康判定规则：LTV/CAC ≥ {UE_RATIO_HEALTHY:g} 且回本期 ≤ {UE_PAYBACK_HEALTHY_MONTHS:g} 月 → healthy；"
         f"LTV/CAC < 1 → unhealthy；其余 → marginal。"
+        "回本期含 initial_cost 首投（方法论：references/business-model.md §3.1）。"
     )
     if ltv_cac >= UE_RATIO_HEALTHY and payback <= UE_PAYBACK_HEALTHY_MONTHS:
         verdict = "healthy"
@@ -177,6 +180,7 @@ def cmd_unit_economics(data: dict) -> dict:
     else:
         verdict = "marginal"
     formulas.append(rule + f"本组：LTV/CAC={num(ltv_cac)}、回本期={num(payback)} 月 → {verdict}")
+    formulas.append("口径出处：回本期含 initial_cost 首投（方法论：references/business-model.md §3.1）")
 
     return {
         "command": "unit-economics",
@@ -198,15 +202,18 @@ def cmd_unit_economics(data: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def cmd_tam(data: dict) -> dict:
-    """市场规模双法交叉：自顶向下 × 因子链，自底向上 × 客户×渗透×ARPU。
+    """市场规模双法交叉：自顶向下 × 因子链，自底向上 × 因子链/客户×渗透×ARPU。
 
     输入字段：
         topdown.base_market   基准大盘（必填，>0）
         topdown.factors       过滤因子列表 [{name, value, source}...]，value 为乘数
         topdown.unit          可选，金额单位（缺省 "元"），照抄标注进算式
-        bottomup.customers    目标客户数（必填，>0）
-        bottomup.penetration  渗透率 0–1（必填）
-        bottomup.arpu         单客年收入（必填，>0）
+        bottomup 两种口径二选一（同时给出会口径冲突，报错）：
+            新形式 bottomup.factors      因子链 [{name, value, source}...]，各 value 连乘，
+                                         算式回显带每个因子的 name 与 source（与 topdown 对称）
+            旧形式 bottomup.customers    目标客户数（必填，>0）
+                   bottomup.penetration  渗透率 0–1（必填）
+                   bottomup.arpu         单客年收入（必填，>0）
         bottomup.unit         可选，金额单位（缺省沿用 topdown.unit 或 "元"）
     """
     ctx = "tam"
@@ -237,14 +244,44 @@ def cmd_tam(data: dict) -> dict:
         name = factor.get("name", "?")
         chain.append(f"{factor['value']}（{name}）")
 
-    customers = require_number(bottom, "customers", f"{ctx}.bottomup")
-    penetration = require_number(bottom, "penetration", f"{ctx}.bottomup")
-    arpu = require_number(bottom, "arpu", f"{ctx}.bottomup")
-    if customers <= 0 or arpu <= 0:
-        die(f"{ctx}：bottomup.customers 与 bottomup.arpu 必须 > 0。")
-    if not 0 < penetration <= 1:
-        die(f"{ctx}：bottomup.penetration 须在 (0, 1] 区间，收到 {penetration}。")
-    result_bottom = customers * penetration * arpu
+    # 自底向上口径：新形式 factors 因子链（各 value 连乘，与 topdown 对称）
+    # 与旧形式 customers × penetration × arpu 二选一，向后兼容，输出结构不变
+    has_b_factors = "factors" in bottom
+    legacy_keys = [k for k in ("customers", "penetration", "arpu") if k in bottom]
+    if has_b_factors and legacy_keys:
+        die(f"{ctx}：bottomup.factors 与 bottomup.customers/penetration/arpu 只能二选一（同时给出会口径冲突）。")
+    if has_b_factors:
+        b_factors = bottom["factors"]
+        if not isinstance(b_factors, list) or not b_factors:
+            die(f"{ctx}：bottomup.factors 必须是非空列表 [{{name, value, source}}...]。")
+        result_bottom = 1.0
+        b_chain = []
+        for i, factor in enumerate(b_factors):
+            if not isinstance(factor, dict) or "value" not in factor:
+                die(f"{ctx}：bottomup.factors[{i}] 必须是含 value 的对象 {{name, value, source}}。")
+            value = factor["value"]
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                die(f"{ctx}：bottomup.factors[{i}].value 必须是数字，收到 {value!r}。")
+            if value <= 0:
+                die(f"{ctx}：bottomup.factors[{i}].value 必须 > 0，收到 {value}。")
+            result_bottom *= float(value)
+            name = factor.get("name", "?")
+            source = factor.get("source", "?")
+            b_chain.append(f"{num(float(value))}（{name}｜{source}）")
+        formula_bottom = f"自底向上：TAM = {' × '.join(b_chain)} = {num(result_bottom)} {unit_bottom}"
+    else:
+        customers = require_number(bottom, "customers", f"{ctx}.bottomup")
+        penetration = require_number(bottom, "penetration", f"{ctx}.bottomup")
+        arpu = require_number(bottom, "arpu", f"{ctx}.bottomup")
+        if customers <= 0 or arpu <= 0:
+            die(f"{ctx}：bottomup.customers 与 bottomup.arpu 必须 > 0。")
+        if not 0 < penetration <= 1:
+            die(f"{ctx}：bottomup.penetration 须在 (0, 1] 区间，收到 {penetration}。")
+        result_bottom = customers * penetration * arpu
+        formula_bottom = (
+            f"自底向上：TAM = customers × penetration × arpu = {num(customers)} × {num(penetration)} × {num(arpu)}"
+            f" = {num(result_bottom)} {unit_bottom}"
+        )
 
     ratio = result_top / result_bottom
     passed = TAM_RATIO_LOW <= ratio <= TAM_RATIO_HIGH
@@ -255,9 +292,10 @@ def cmd_tam(data: dict) -> dict:
         + f" = {' × '.join(chain)} = {num(result_top)} {unit_top}"
         if factors
         else f"自顶向下：TAM = base_market = {num(base)} {unit_top}",
-        f"自底向上：TAM = customers × penetration × arpu = {num(customers)} × {num(penetration)} × {num(arpu)} = {num(result_bottom)} {unit_bottom}",
+        formula_bottom,
         f"数量级比值 = 自顶向下 ÷ 自底向上 = {num(result_top)} ÷ {num(result_bottom)} = {num(ratio)}；"
         f"判定区间 [{TAM_RATIO_LOW:g}, {TAM_RATIO_HIGH:g}] → {status}",
+        "口径出处：references/market-research.md §5（市场规模估算规程 TAM/SAM/SOM 与双法交叉）",
     ]
 
     return {
@@ -347,7 +385,8 @@ def cmd_price_chain(data: dict) -> dict:
             f"零售价 ÷ BOM = {num(multiple)}。常见硬件 2.5×–5× 仅为经验 sanity check，不作定价依据；"
             "最终价必须 ≥ 本链结果才保本。"
         ),
-        "formulas": [s["formula"] for s in steps],
+        "formulas": [s["formula"] for s in steps]
+        + ["口径出处：references/business-model.md §2.6（硬件：BOM 到零售价的上游加成规则）"],
     }
 
 
@@ -422,6 +461,7 @@ def cmd_calibration(data: dict) -> dict:
     formulas = [
         f"Brier = (1/n) Σ(pᵢ − oᵢ)²，n={n} → {num(brier)}（0 为完美，越小越好）",
         f"ECE = Σ (桶样本数/n) × |桶内平均置信度 − 桶内命中率|，10 桶 → {num(ece)}（越小越校准）",
+        "口径出处：references/decision-quality.md §六（校准与复盘）",
     ]
     return {
         "command": "calibration",
@@ -436,6 +476,87 @@ def cmd_calibration(data: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# 子命令 5：expr（通用白名单表达式，消除"辅助算术灰色地带"）
+# ---------------------------------------------------------------------------
+
+# 白名单：仅数字、括号、+ - * / // % **、一元负号；其余节点一律拒绝
+_EXPR_BINOPS = {
+    ast.Add: lambda a, b: a + b,
+    ast.Sub: lambda a, b: a - b,
+    ast.Mult: lambda a, b: a * b,
+    ast.Div: lambda a, b: a / b,
+    ast.FloorDiv: lambda a, b: a // b,
+    ast.Mod: lambda a, b: a % b,
+    ast.Pow: lambda a, b: a ** b,
+}
+# ** 指数幅度上限：防止 10**10**10 之类的资源滥用（白名单之内的纪律）
+_EXPR_POW_LIMIT = 1e6
+
+
+def _eval_expr(node) -> float:
+    """递归求值 ast 节点；白名单之外的任何节点直接报错退出码 2。"""
+    if isinstance(node, ast.Expression):
+        return _eval_expr(node.body)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
+            die(f"expr：仅允许数字字面量，收到 {node.value!r}。禁止名称、字符串与布尔值。")
+        return float(node.value)
+    if isinstance(node, ast.BinOp):
+        op = _EXPR_BINOPS.get(type(node.op))
+        if op is None:
+            die(f"expr：不支持的运算符 {type(node.op).__name__}；仅允许 + - * / // % **。")
+        left = _eval_expr(node.left)
+        right = _eval_expr(node.right)
+        if isinstance(node.op, ast.Pow) and abs(right) > _EXPR_POW_LIMIT:
+            die(f"expr：** 的指数绝对值超过上限 {_EXPR_POW_LIMIT:g}，拒绝求值（防资源滥用）。")
+        try:
+            return op(left, right)
+        except ZeroDivisionError:
+            die(f"expr：除数为零，表达式不可求值。请检查算式。")
+    if isinstance(node, ast.UnaryOp):
+        operand = _eval_expr(node.operand)
+        if isinstance(node.op, ast.USub):
+            return -operand
+        if isinstance(node.op, ast.UAdd):
+            return operand
+        die(f"expr：不支持的一元运算符 {type(node.op).__name__}；仅允许一元负号。")
+    die(
+        f"expr：表达式含不允许的语法元素 {type(node).__name__}。"
+        "白名单仅允许：数字、括号、+ - * / // % **、一元负号。"
+    )
+
+
+def cmd_expr(data: dict) -> dict:
+    """通用表达式计算（白名单算术）。
+
+    输入字段：
+        expression  算式字符串（必填），仅允许数字、括号、+ - * / // % **、一元负号
+        note        可选，算式用途说明，照抄进输出便于账本标注
+    输出 formula 字段可直接粘贴到账本 research_log.md 的「算式附录」。
+    """
+    ctx = "expr"
+    expression = data.get("expression")
+    if not isinstance(expression, str) or not expression.strip():
+        die(f"{ctx}：缺少必填字段 'expression'（非空算式字符串），如 \"50*80*12\"。")
+    note = data.get("note", "")
+    if not isinstance(note, str):
+        die(f"{ctx}：字段 'note' 必须是字符串，收到 {note!r}。")
+    try:
+        tree = ast.parse(expression, mode="eval")
+    except SyntaxError as exc:
+        die(f"{ctx}：算式语法错误：{exc.msg}（第 {exc.lineno} 行第 {exc.offset} 列）。收到：{expression!r}")
+    result = _eval_expr(tree)
+    shown = int(result) if result.is_integer() else num(result)
+    return {
+        "command": "expr",
+        "expression": expression,
+        "note": note,
+        "result": shown,
+        "formula": f"{expression} = {shown}",
+    }
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -444,6 +565,7 @@ COMMANDS = {
     "tam": cmd_tam,
     "price-chain": cmd_price_chain,
     "calibration": cmd_calibration,
+    "expr": cmd_expr,
 }
 
 

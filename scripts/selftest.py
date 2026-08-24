@@ -4,9 +4,11 @@
 以子进程方式真实调用 scripts/ 下各 CLI，做正确性断言：
     - calc.py unit-economics：手算对照（gross_margin / churn_rate / cogs / initial_cost 四条路径）
     - calc.py calibration：Brier 手算对照、n<20 时绝不输出 Brier/ECE 数字
-    - calc.py tam / price-chain：手算对照与双法交叉判定
+    - calc.py tam / price-chain：手算对照与双法交叉判定；bottomup 因子链与旧形式兼容
+    - calc.py expr：白名单算术正常计算、注入与变量名一律拒绝（退出码 2）
     - validate_handoff.py：合法样本通过、非法样本逐条报错
-    - init_workspace.py：幂等性（二次运行跳过且不覆盖被修改过的账本）
+    - init_workspace.py：幂等性、handoff.json 骨架过契约校验、模板「（模板）」标记去除、
+      --with-contract 生效
 
 用法：python3 scripts/selftest.py
 退出码：0 全部通过；1 存在失败断言。
@@ -105,6 +107,15 @@ def test_unit_economics() -> None:
     )
     check("initial_cost 路径：LTV=130, ratio=1.3, 回本=4, marginal", ok, f"code={code} out={out} err={err}")
 
+    # 回本期口径标注：formulas 与 verdict_rule 均注明含 initial_cost 首投及出处
+    ok = (
+        out is not None
+        and "business-model.md §3.1" in json.dumps(out["formulas"], ensure_ascii=False)
+        and "回本期含 initial_cost 首投" in out["verdict_rule"]
+    )
+    check("回本期口径标注：方法论 references/business-model.md §3.1 可互查", ok,
+          f"out={out}")
+
     # 纪律：lifespan_months 与 churn_rate 同时给必须报错（退出码 2）
     code, out, err = run(
         "calc.py", "unit-economics",
@@ -183,6 +194,37 @@ def test_tam_and_price_chain() -> None:
     ok = code == 0 and out is not None and close(out["magnitude_ratio"], 10) and out["status"] == "pass"
     check("边界：比值 10 → pass（区间含端点）", ok, f"code={code} out={out} err={err}")
 
+    # bottomup 因子链（新形式）：2127×10×0.05×9600 = 10,209,600，算式回显带 name 与 source
+    code, out, err = run(
+        "calc.py", "tam",
+        "--json", '{"topdown": {"base_market": 10209600, "factors": [{"name": "细分", "value": 1.0, "source": "s"}]}, '
+                  '"bottomup": {"factors": ['
+                  '{"name": "园区数", "value": 2127, "source": "中物联2024"}, '
+                  '{"name": "每园区站点数", "value": 10, "source": "ASSUMED"}, '
+                  '{"name": "渗透率", "value": 0.05, "source": "ASSUMED"}, '
+                  '{"name": "ARPU", "value": 9600, "source": "ASSUMED"}]}}',
+    )
+    formulas_text = json.dumps(out["formulas"], ensure_ascii=False) if out else ""
+    ok = (
+        code == 0 and out is not None
+        and close(out["bottomup_result"], 2127 * 10 * 0.05 * 9600)
+        and out["status"] == "pass"
+        and "园区数" in formulas_text and "中物联2024" in formulas_text
+        and "ARPU" in formulas_text and "ASSUMED" in formulas_text
+    )
+    check("bottomup 因子链：连乘=10209600，回显带每个因子的 name 与 source", ok,
+          f"code={code} out={out} err={err}")
+
+    # 旧形式与新形式同时给出 → 口径冲突报错（退出码 2）
+    code, out, err = run(
+        "calc.py", "tam",
+        "--json", '{"topdown": {"base_market": 100}, '
+                  '"bottomup": {"customers": 100, "penetration": 0.1, "arpu": 10, '
+                  '"factors": [{"name": "x", "value": 2, "source": "s"}]}}',
+    )
+    check("bottomup 新旧两形式同时给出 → 报错退出码 2", code == 2 and "二选一" in err,
+          f"code={code} err={err}")
+
     print("[calc.py price-chain]")
     # 手算：出厂=100×1.05=105；准备金=105×0.05=5.25；含税=110.25/0.87≈126.7241；零售=126.7241/0.8≈158.4052
     code, out, err = run(
@@ -198,6 +240,46 @@ def test_tam_and_price_chain() -> None:
         and close(out["retail_to_bom_ratio"], 110.25 / 0.87 / 0.8 / 100)
     )
     check("手算对照：出厂=105，零售≈158.4052，四环算式齐全", ok, f"code={code} out={out} err={err}")
+
+
+# ---------------------------------------------------------------------------
+# calc.py expr（白名单表达式）
+# ---------------------------------------------------------------------------
+
+def test_expr() -> None:
+    print("[calc.py expr]")
+    # 正常计算：50×80×12 = 48000，formula 可直接粘进算式附录
+    code, out, err = run(
+        "calc.py", "expr",
+        "--json", '{"expression": "50*80*12", "note": "ARPU=50人×80元×12月"}',
+    )
+    ok = (
+        code == 0 and out is not None
+        and out["result"] == 48000
+        and out["formula"] == "50*80*12 = 48000"
+        and out["note"] == "ARPU=50人×80元×12月"
+    )
+    check("手算对照：50*80*12=48000，formula 回显可粘贴", ok, f"code={code} out={out} err={err}")
+
+    # 括号 / 一元负号 / 幂均在白名单内：-(2+3)**2 = -25
+    code, out, err = run("calc.py", "expr", "--json", '{"expression": "-(2+3)**2"}')
+    ok = code == 0 and out is not None and out["result"] == -25
+    check("括号 + 一元负号 + ** ：-(2+3)**2 = -25", ok, f"code={code} out={out} err={err}")
+
+    # 注入拒绝：函数调用
+    code, out, err = run("calc.py", "expr", "--json", '{"expression": "__import__(\\"os\\")"}')
+    check("注入拒绝：__import__(\"os\") → 报错退出码 2", code == 2 and "error" in err,
+          f"code={code} err={err}")
+
+    # 注入拒绝：字母变量名
+    code, out, err = run("calc.py", "expr", "--json", '{"expression": "a+b"}')
+    check("注入拒绝：字母变量 a+b → 报错退出码 2", code == 2 and "error" in err,
+          f"code={code} err={err}")
+
+    # 注入拒绝：属性访问
+    code, out, err = run("calc.py", "expr", "--json", '{"expression": "(1).bit_length()"}')
+    check("注入拒绝：属性/调用 (1).bit_length() → 报错退出码 2", code == 2 and "error" in err,
+          f"code={code} err={err}")
 
 
 # ---------------------------------------------------------------------------
@@ -267,17 +349,51 @@ def test_validate_handoff() -> None:
 def test_init_workspace() -> None:
     print("[init_workspace.py]")
     with tempfile.TemporaryDirectory() as tmp:
-        # 首次运行：创建两个账本
+        # 首次运行：创建两个账本 + handoff.json 骨架
         code, out, err = run("init_workspace.py", "演示项目", "--date", "20250131", "--dir", tmp)
         ws = Path(tmp) / "演示项目-20250131"
         ok = (
             code == 0 and out is not None
             and ws.is_dir()
-            and len(out["created"]) == 2 and out["skipped"] == []
+            and len(out["created"]) == 3 and out["skipped"] == []
             and (ws / "decision_journal.md").is_file()
             and (ws / "research_log.md").is_file()
+            and (ws / "handoff.json").is_file()
         )
-        check("首次运行：创建工作区并生成两个账本", ok, f"code={code} out={out} err={err}")
+        check("首次运行：创建工作区并生成两个账本 + handoff.json 骨架", ok,
+              f"code={code} out={out} err={err}")
+
+        # handoff.json 骨架必须能被 validate_handoff.py 通过
+        code, out, err = run("validate_handoff.py", str(ws / "handoff.json"))
+        ok = code == 0 and out is not None and out["valid"] is True and out["errors"] == []
+        check("handoff.json 骨架被 validate_handoff.py 通过（valid=true）", ok,
+              f"code={code} out={out} err={err}")
+
+        # 骨架占位标记：ABSTAIN + 待填写决策问题 + confidence=null
+        skeleton = json.loads((ws / "handoff.json").read_text(encoding="utf-8"))
+        ok = (
+            skeleton["recommendation"] == "ABSTAIN"
+            and "待填写" in skeleton["decision_question"]
+            and skeleton["confidence"] is None
+            and skeleton["project"]["name"] == "演示项目"
+            and skeleton["key_assumptions"] == []
+            and skeleton["critical_uncertainties"] == []
+        )
+        check("骨架占位：ABSTAIN / 待填写标记 / confidence=null / 空假设清单", ok,
+              f"skeleton={skeleton}")
+
+        # 模板首行「（模板）」标记已去除，其余内容字节不变
+        journal_text = (ws / "decision_journal.md").read_text(encoding="utf-8")
+        template_text = (SCRIPTS_DIR.parent / "templates" / "decision-journal.md").read_text(encoding="utf-8")
+        t_first, _, t_rest = template_text.partition("\n")
+        j_first, _, j_rest = journal_text.partition("\n")
+        ok = (
+            "（模板）" in t_first
+            and "（模板）" not in j_first
+            and j_rest == t_rest
+        )
+        check("模板首行「（模板）」标记已去除，其余内容字节不变", ok,
+              f"模板首行={t_first!r} 账本首行={j_first!r}")
 
         # 篡改账本内容，验证二次运行绝不覆盖（幂等 + 账本纪律）
         marker = "手工登记的预测，不可被工具覆盖"
@@ -287,11 +403,32 @@ def test_init_workspace() -> None:
         code, out, err = run("init_workspace.py", "演示项目", "--date", "20250131", "--dir", tmp)
         ok = (
             code == 0 and out is not None
-            and out["created"] == [] and len(out["skipped"]) == 2
+            and out["created"] == [] and len(out["skipped"]) == 3
             and journal.read_text(encoding="utf-8") == marker
         )
         check("二次运行：全部跳过，已有账本内容原样保留（幂等）", ok,
               f"code={code} out={out} err={err}")
+
+        # --with-contract：生成 judgment_contract.md，且首行「（模板）」同样去除
+        code, out, err = run(
+            "init_workspace.py", "演示项目", "--date", "20250131", "--dir", tmp, "--with-contract",
+        )
+        contract = ws / "judgment_contract.md"
+        ok = (
+            code == 0 and out is not None
+            and str(contract) in out["created"]
+            and contract.is_file()
+            and "（模板）" not in contract.read_text(encoding="utf-8").partition("\n")[0]
+        )
+        check("--with-contract：生成 judgment_contract.md 且去除「（模板）」", ok,
+              f"code={code} out={out} err={err}")
+
+        # --with-contract 幂等：二次运行跳过，不覆盖
+        code, out, err = run(
+            "init_workspace.py", "演示项目", "--date", "20250131", "--dir", tmp, "--with-contract",
+        )
+        ok = code == 0 and out is not None and out["created"] == [] and len(out["skipped"]) == 4
+        check("--with-contract 二次运行：全部跳过（幂等）", ok, f"code={code} out={out} err={err}")
 
         # --date 格式校验
         code, out, err = run("init_workspace.py", "演示项目", "--date", "2025-01-31", "--dir", tmp)
@@ -304,6 +441,7 @@ def main() -> int:
     test_unit_economics()
     test_calibration()
     test_tam_and_price_chain()
+    test_expr()
     test_validate_handoff()
     test_init_workspace()
     print(f"\n合计：{PASS_COUNT} 通过，{FAIL_COUNT} 失败。")
