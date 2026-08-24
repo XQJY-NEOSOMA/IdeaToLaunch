@@ -1,0 +1,11 @@
+{
+  "name": "fundraising-bp-planner",
+  "source": "/app/.agents/skills/fundraising-bp-planner（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "模块 7（A 线 BP 大纲）",
+  "applicability_boundary": "与 investment-memo 互补：大纲→成稿；investor-pitch-planner 已去重",
+  "dedup_note": "investor-pitch-planner（职能重合，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
