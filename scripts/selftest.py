@@ -451,13 +451,16 @@ GO_HANDOFF = {
     "judgment_contract": {
         "current_judgment": "值得做：细分市场有真实付费意愿",
         "what_would_change_my_mind": "内测 90 天付费率 <2%",
-        "next_step": "完成 PRD 与 MVP 里程碑",
+        "next_step": "进入环节3：完成 PRD 与 MVP 里程碑",
+        "biggest_unknown": "真实转化率未知",
     },
     "key_assumptions": [
         {"statement": "目标用户愿意月付 100 元", "status": "ASSUMED", "evidence_refs": ["H-01"]},
+        {"statement": "目标用户愿意月付 100 元（真实付费率未验证）", "status": "UNVERIFIED"},
     ],
     "critical_uncertainties": ["真实转化率未知"],
-    "constraints": ["预算 ≤ 50 万"],
+    "constraints": ["预算 ≤ 50 万", "真人测试前须升级用户确认（技能'何时问用户'纪律）",
+                    "结构方案硬约束：后入式半包围——后方完全开放、驾驶员从正后方步入"],
 }
 
 RESEARCH_LOG = """# 研究日志
@@ -480,6 +483,7 @@ RESEARCH_LOG = """# 研究日志
 
 ## 五、算式附录
 
+- 2025-01-30 PERT 三点估算（工具：scripts/calc.py expr）：输入 3 个工作包 O/M/P（设计 2/3/5、开发 5/8/14、测试 1/2/4，单位人日），JSON 存档于 estimate.txt。结果：ΣE=18.50 人日，90% 置信区间 15.00–22.00 人日。
 50*80*12 = 48000（ARPU 估算，2025-01）
 """
 
@@ -495,6 +499,28 @@ DECISION_JOURNAL = """# 决策日志
 
 | # | 日期 | 决定 | 推荐 | 实际行动 | 结果 | 复盘备注 |
 |---|---|---|---|---|---|---|
+| 1 | 2025-01-15 | 立项进入产品落地（GO） | GO | 已执行 | — | |
+"""
+
+# 含内部痕迹（references/ 路径、S0/S2 阶段码、声明门）与材料参数表的基线：
+# 用于验证「章题错配诚实处理」与「内部引用清洗」两项修补
+PRODUCT_BASELINE = """# 产品基线
+
+## 产品定义
+
+- 目标：演示产品定义要点
+
+## 关键参数表
+
+| 参数 | 数值 | 状态标签 | 来源/证据 |
+|---|---|---|---|
+| 整机重量 | ≤2.5kg | A | 工程假设 |
+| 材料抗拉强度 | 48–53 MPa | E | 厂商 TDS |
+
+## 生命周期状态
+
+- 当前阶段：S2 产品定义（见 references/product-lifecycle.md）——PRD 初稿完成，待冻结
+- 已达成的声明门：S0 目标与约束显性化
 """
 
 
@@ -506,6 +532,7 @@ def test_assemble_bp() -> None:
         (ws / "handoff.json").write_text(json.dumps(GO_HANDOFF, ensure_ascii=False), encoding="utf-8")
         (ws / "research_log.md").write_text(RESEARCH_LOG, encoding="utf-8")
         (ws / "decision_journal.md").write_text(DECISION_JOURNAL, encoding="utf-8")
+        (ws / "product_baseline.md").write_text(PRODUCT_BASELINE, encoding="utf-8")
 
         # GO 工作区：成功组装，七章标题齐全
         code, out, err = run("assemble_bp.py", str(ws))
@@ -537,6 +564,245 @@ def test_assemble_bp() -> None:
         # 末尾附假设与证据总登记处 + 覆盖率统计
         ok = "## 假设与证据总登记处" in text and "## 覆盖率统计" in text
         check("输出末尾附「假设与证据总登记处」与覆盖率统计", ok)
+
+        # 修补 1：数据不足警示置顶——位于执行摘要章内（而非只埋在缺口章），并列出缺口章号
+        ch1 = (text.split("## 第一章 执行摘要", 1)[1].split("## 第二章", 1)[0]
+               if "## 第一章 执行摘要" in text else "")
+        ok = ("⚠️" in ch1 and "数据不足警示" in ch1 and "暂不足以支撑投资决策" in ch1
+              and "第三章" in ch1 and "第七章" in ch1)
+        check("数据不足警示置顶在执行摘要开头并列出缺口章号（第三章/第七章）", ok,
+              f"执行摘要段={ch1[:200]!r}")
+
+        # 修补 2（R3 修订）：文首标签图例——四态释义固定输出、位于正文之前；
+        # 本工作区正文未使用八态标签与英文判定词 → 两组释义行按需省略（避免读者白学）
+        legend = text.split("## 标签图例", 1)[1].split("## 第一章", 1)[0] if "## 标签图例" in text else ""
+        ok = ("## 标签图例" in text and "本项目内已验证" in legend
+              and "不得作为决策依据" in legend and "工程假设" in legend
+              and "参数八态" not in legend and "判定词" not in legend
+              and "待测试" not in legend and "marginal＝及格线边缘" not in text
+              and text.index("## 标签图例") < text.index("## 第一章 执行摘要"))
+        check("文首标签图例：四态释义固定输出且位于正文之前；未使用八态/判定词 → 释义行省略", ok,
+              f"图例段={legend!r}")
+
+        # 修补 3：章题错配诚实处理——账本无「优势/壁垒/团队」主题内容时，
+        # 第三章整章标数据不足，材料参数表等错配内容不得填入
+        ch3 = (text.split("## 第三章 为什么是我们", 1)[1].split("## 第四章", 1)[0]
+               if "## 第三章 为什么是我们" in text else "")
+        ok = ("数据不足" in ch3 and "待补清单" in ch3 and "抗拉" not in ch3
+              and "整机重量" not in ch3 and "MPa" not in ch3 and out is not None
+              and any("第三章" in t for t in out["chapters_insufficient"]))
+        check("章题错配：第三章无优势主题内容 → 整章数据不足，不填材料参数表", ok,
+              f"第三章段={ch3[:200]!r}")
+
+        # 修补 4：内部引用清洗——正文无内部路径、无 S0–S8 阶段码、环节码/声明门白话化
+        ok = ("references/" not in text and "templates/" not in text
+              and "S0" not in text and "S2" not in text
+              and "声明门" not in text and "环节3" not in text and "环节1" not in text
+              and "产品落地环节" in text and "阶段放行确认点" in text
+              and "（handoff" not in text and "product_baseline.md 产品定义" not in text
+              and "product_baseline.md 生命周期状态" not in text)
+        check("内部引用清洗：无 references/ 路径、无 S0/S2 阶段码、环节码与声明门已白话化", ok)
+
+        # 修补 5：coverage 数字统计口径收紧——仅统计带单位数字，并在 coverage 行注明口径
+        cov = text.split("## 覆盖率统计", 1)[1] if "## 覆盖率统计" in text else ""
+        ok = "仅统计带单位数字" in cov and "年份与比例代号不计入" in cov
+        check("coverage 口径收紧：仅统计带单位数字并在文中注明口径", ok, f"覆盖率段={cov[:200]!r}")
+
+        # 修补 6（R2）：内部括注黑话清除——正文（含括注）无内部流程词残留；
+        # 裸出现的「决策台账」已白话化为「决策记录」
+        ok = ("判断合同（" not in text and "决策交接包" not in text
+              and "何时问用户" not in text and "产品基线·生命周期状态" not in text
+              and "决策台账" not in text and "决策记录 #1" in text)
+        check("内部括注黑话清除：无「判断合同（」「决策交接包」「何时问用户」残留，决策台账→决策记录", ok,
+              f"残留片段={[w for w in ['判断合同（', '决策交接包', '何时问用户', '决策台账'] if w in text]}")
+
+        # 修补 7（R2，R3 修订）：执行摘要去重——与第四章假设表重复时只保留一句汇总；
+        # 交接包登记 2 项 vs 台账在册 1 项 → 两数并陈 + 差额，绝不只选一个数；
+        # 「未挂账本编号，需回填」全文最多出现一次
+        ok = ("交接包登记 2 项、台账在册 1 项（H-01），差 1 项待补登" in ch1
+              and "共 2 项关键假设" not in ch1 and "共 1 项关键假设" not in ch1
+              and "明细见第四章" in ch1
+              and "其中 1 项未验证（H-01" in ch1
+              and ch1.count("- 关键假设：") == 1
+              and text.count("未挂账本编号") <= 1)
+        check("执行摘要去重+数量对账：两数并陈（登记 2 项/在册 1 项，差 1 项待补登），不单选一数", ok,
+              f"执行摘要段={ch1[:300]!r}")
+
+        # 修补 8（R2，R3 修订）：图例 R 双义说明按需——八态未使用时连双义注释一并省略
+        ok = "R-xx 与参数八态" not in legend and "属不同体系" not in legend
+        check("图例 R 双义说明按需：八态未使用时编号说明行不带双义注释", ok,
+              f"图例段={legend[-200:]!r}")
+
+        # 修补 9（R2）：算式单元格减负——登记处 C-1 行只有结论数字；
+        # O/M/P 输入明细迁至登记处之后的「算式明细附录」
+        c1_row = next((ln for ln in text.splitlines() if ln.startswith("| C-1 |")), "")
+        appendix = text.split("## 算式明细附录", 1)[1] if "## 算式明细附录" in text else ""
+        ok = (c1_row and "O/M" not in c1_row and "ΣE=18.50 人日" in c1_row
+              and "O/M/P" in appendix and "设计 2/3/5" in appendix
+              and text.index("## 算式明细附录") > text.index("## 假设与证据总登记处"))
+        check("算式单元格减负：C-1 行仅结论数字，O/M/P 明细在登记处之后的算式明细附录", ok,
+              f"C-1 行={c1_row[:160]!r}")
+
+        # 修补 10（R2）：coverage 口径对账——行末注明与执行摘要「未挂编号」口径不同、不矛盾
+        ok = "与本表按带单位数字的口径不同" in cov and "两者不矛盾" in cov
+        check("coverage 口径对账：行末注明与摘要「未挂编号」口径不同、两者不矛盾", ok,
+              f"覆盖率段={cov[:250]!r}")
+
+        # 修补 11（R3）：假设数量不一致计入 coverage 备注——两数并陈 + 差额 + 补齐指引
+        ok = ("假设数量对账" in cov and "交接包登记 2 项" in cov
+              and "台账在册 1 项（H-01）" in cov and "差 1 项待补登" in cov)
+        check("假设数量不一致计入 coverage 备注（两数并陈 + 差额 + 补齐指引）", ok,
+              f"覆盖率段={cov[:300]!r}")
+
+        # 修补 12（R3）：警示块过渡句条件输出——本工作区无 waived_stages、无知情声明 → 不输出
+        ok = "知情决策" not in ch1 and "非数据充分性结论" not in text
+        check("警示块过渡句按需：非知情决策（无 waived_stages/知情声明）→ 不含「知情决策」句", ok,
+              f"执行摘要段={ch1[:200]!r}")
+
+        # 修补 13（R3）：图例按需输出——正文使用八态标签（T）与判定词 healthy 时，
+        # 八态/判定词释义行与 R 双义说明保留；数量一致（各 2 项）时摘要照常写「共 2 项」
+        tagged_log = RESEARCH_LOG.replace(
+            "| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |",
+            "| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |\n"
+            "| H-02 | 试打印样件层间强度达标（T） | 待首件实测 | UNVERIFIED | 首件试打印 | | |",
+        ).replace(
+            "结论：2025 年目标细分市场规模约 120 亿元/年，年增速 15%",
+            "结论：2025 年目标细分市场规模约 120 亿元/年，年增速 15%，单位经济 healthy",
+        )
+        (ws / "research_log.md").write_text(tagged_log, encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        legend = text.split("## 标签图例", 1)[1].split("## 第一章", 1)[0]
+        ch1 = text.split("## 第一章 执行摘要", 1)[1].split("## 第二章", 1)[0]
+        ok = (code == 0
+              and "参数八态" in legend and "待测试" in legend and "待供应商" in legend
+              and "判定词" in legend and "marginal＝及格线边缘" in legend
+              and "R-xx 与参数八态" in legend and "属不同体系" in legend)
+        check("图例按需：正文使用八态标签（T）与判定词 healthy → 八态/判定词释义与 R 双义说明保留", ok,
+              f"图例段={legend!r}")
+        ok = "共 2 项关键假设" in ch1 and "待补登" not in ch1 and "假设数量对账" not in text
+        check("数量一致时照常：摘要写「共 2 项关键假设」，coverage 无对账备注", ok,
+              f"执行摘要段={ch1[:300]!r}")
+
+        # 修补 14（R3，R4 修订）：知情决策注提升显著度——waived_stages 含环节 1 时，
+        # 加粗独立行紧跟「决策结论：GO」行正下方；警示块内不再重复该注
+        waived_handoff = dict(GO_HANDOFF, scope={"waived_stages": ["1"], "note": "用户明确承担风险跳过验证"})
+        (ws / "handoff.json").write_text(json.dumps(waived_handoff, ensure_ascii=False), encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        ch1 = text.split("## 第一章 执行摘要", 1)[1].split("## 第二章", 1)[0]
+        text_lines = text.splitlines()
+        go_idx = next((i for i, ln in enumerate(text_lines)
+                       if ln.startswith("> 决策结论：GO")), -1)
+        informed_note = ("**注：本 GO 为委托方知情决策（用户明确承担跳过机会验证的风险），"
+                         "非数据充分性结论。**")
+        ok = (go_idx >= 0 and text_lines[go_idx + 1] == informed_note
+              and "知情决策" not in ch1 and "非数据充分性结论" not in ch1
+              and "数据不足警示" in ch1)
+        check("知情决策注：加粗独立行在 GO 行正下方，警示块内不再重复", ok,
+              f"GO 行后续={text_lines[go_idx:go_idx + 3]!r} 执行摘要段={ch1[:200]!r}")
+
+        # 修补 15（R4）：硬约束拆条——渲染为无序列表（每条一项、每项 ≤60 字），
+        # 与父级重复的「…硬约束：」前缀去重；不再拼接成多冒号嵌套长句
+        (ws / "handoff.json").write_text(json.dumps(GO_HANDOFF, ensure_ascii=False), encoding="utf-8")
+        (ws / "research_log.md").write_text(RESEARCH_LOG, encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        ch1 = text.split("## 第一章 执行摘要", 1)[1].split("## 第二章", 1)[0]
+        ch1_lines = ch1.splitlines()
+        hc_idx = ch1_lines.index("- 硬约束：") if "- 硬约束：" in ch1_lines else -1
+        hc_items = []
+        for ln in ch1_lines[hc_idx + 1:]:
+            if ln.startswith(("  - ", "    ")):
+                hc_items.append(ln)
+            elif ln.strip():
+                break
+        ok = (hc_idx >= 0 and len(hc_items) == 3
+              and any(ln.strip() == "- 预算 ≤ 50 万" for ln in hc_items)
+              and any("结构方案：后入式半包围" in ln for ln in hc_items)
+              and "结构方案硬约束：" not in text
+              and "预算 ≤ 50 万；真人测试" not in ch1
+              and all(len(ln.strip()) <= 60 for ln in hc_items))
+        check("硬约束拆条：无序列表每条一项、≤60 字、重复前缀「…硬约束：」去重、无嵌套长句", ok,
+              f"硬约束块={hc_items!r}")
+
+        # 修补 16（R4）：逐字重复消除——同一规范文本全文只出现一次，后续替换为指针；
+        # 覆盖「下一步」（第一章 vs 第五章）与「最大未知」（第四章 vs 第六章）
+        ch5 = text.split("## 第五章 计划与里程碑", 1)[1].split("## 第六章", 1)[0]
+        ch6 = text.split("## 第六章 什么会推翻这个计划", 1)[1].split("## 第七章", 1)[0]
+        ok = ("完成 PRD 与 MVP 里程碑" in ch1
+              and "完成 PRD 与 MVP 里程碑" not in ch5
+              and "- 下一步：（同第一章执行摘要，见第一章）" in ch5
+              and text.count("- 最大未知：真实转化率未知") == 1
+              and "真实转化率未知" not in ch6
+              and "- 最大未知：（同第四章关键假设与风险，见第四章）" in ch6)
+        check("逐字重复消除：重复 bullet 替换为指针（下一步/最大未知各只出现一次）", ok,
+              f"第五章段={ch5[:200]!r} 第六章段={ch6[:200]!r}")
+
+        # 修补 17（R4）：领域术语小词典——正文命中 PERT/PRD/MVP → 图例附「术语表」小节；
+        # 未命中的术语（如 BOM）不输出；正文含 TDS 时图例有「技术数据表」
+        legend = text.split("## 标签图例", 1)[1].split("## 第一章", 1)[0]
+        ok = ("术语表" in legend and "计划评审技术/三点估算法" in legend
+              and "产品需求文档" in legend and "最小可行产品" in legend
+              and "物料清单" not in legend and "技术数据表" not in legend)
+        check("术语表按需：命中 PERT/PRD/MVP 输出释义，未命中 BOM/TDS 不输出", ok,
+              f"图例段={legend!r}")
+        tds_log = RESEARCH_LOG.replace("来源：某行业年度报告", "来源：某厂商 TDS")
+        (ws / "research_log.md").write_text(tds_log, encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        legend = text.split("## 标签图例", 1)[1].split("## 第一章", 1)[0]
+        ok = "术语表" in legend and "TDS＝技术数据表" in legend
+        check("术语表：正文含 TDS → 图例有「TDS＝技术数据表」", ok, f"图例段={legend!r}")
+        (ws / "research_log.md").write_text(RESEARCH_LOG, encoding="utf-8")
+
+        # 修补 18（质量核对遗留：表题即结论）：关键表格上方自动生成结论式标题，
+        # 计数由内容机械计算；假设表标题含四态计数与 UNVERIFIED 编号，
+        # 登记处合表标题含分类计数
+        rich_log = RESEARCH_LOG.replace(
+            "| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |",
+            "| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |\n"
+            "| H-02 | 试打印样件层间强度达标 | 待首件实测 | UNVERIFIED | 首件试打印 | | |\n"
+            "| H-03 | 交付周期满足客户要求 | 30 天内交付 | VERIFIED | 试点客户验收 | | |\n"
+            "| H-04 | 复购率不低于三成 | 30% | ESTIMATED | 行业基准 | | |",
+        )
+        (ws / "research_log.md").write_text(rich_log, encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        ch4 = text.split("## 第四章 关键假设与风险", 1)[1].split("## 第五章", 1)[0]
+        registry = text.split("## 假设与证据总登记处", 1)[1]
+        ok = (code == 0
+              and "**4 项关键假设：VERIFIED 1 / ESTIMATED 1 / ASSUMED 1 / UNVERIFIED 1（H-02）**" in ch4
+              and ch4.index("**4 项关键假设") < ch4.index("| # | 关键假设 |"))
+        check("表题即结论：假设表上方结论式标题含正确四态计数与 UNVERIFIED 编号", ok,
+              f"第四章段={ch4[:300]!r}")
+        ok = "**登记处共 7 条：假设 4 / 证据 1 / 算式 2**" in registry
+        check("表题即结论：登记处合表标题含分类计数（共 7 条：假设 4/证据 1/算式 2）", ok,
+              f"登记处段={registry[:200]!r}")
+
+        # 修补 19（质量核对遗留：假设表单点维护）：第四章不再有 H-01~H-04 整表，
+        # 只留 ASSUMED/UNVERIFIED 高关注行 + 登记处指针；登记处仍全量
+        ok = ("| H-01 |" in ch4 and "| H-02 |" in ch4
+              and "| H-03 |" not in ch4 and "| H-04 |" not in ch4
+              and "完整假设台账见文末" in ch4)
+        check("假设表单点维护：第四章仅高关注行（ASSUMED/UNVERIFIED）+ 登记处指针，无整表", ok,
+              f"第四章段={ch4[:400]!r}")
+        ok = all(f"| {hid} |" in registry for hid in ("H-01", "H-02", "H-03", "H-04"))
+        check("假设表单点维护：登记处仍全量（H-01~H-04 全在合表）", ok,
+              f"登记处段={registry[:300]!r}")
+
+        # 表题退回描述性：台账为空时不编造计数标题；登记处标题省略零计数分类
+        empty_hyp_log = RESEARCH_LOG.replace(
+            "| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |\n", "")
+        (ws / "research_log.md").write_text(empty_hyp_log, encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        text = (ws / "deliverables" / "bp_draft.md").read_text(encoding="utf-8")
+        ch4 = text.split("## 第四章 关键假设与风险", 1)[1].split("## 第五章", 1)[0]
+        ok = (code == 0 and "项关键假设：" not in ch4 and "| # | 关键假设 |" not in ch4
+              and "**登记处共 3 条：证据 1 / 算式 2**" in text)
+        check("表题退回：假设台账为空 → 不编造计数标题；登记处标题省略零计数分类", ok,
+              f"第四章段={ch4[:200]!r}")
+        (ws / "research_log.md").write_text(RESEARCH_LOG, encoding="utf-8")
 
         # handoff 为 ABSTAIN：拒绝进入成果交付，退出码 2
         abstain = dict(GO_HANDOFF, recommendation="ABSTAIN")
@@ -744,6 +1010,67 @@ def test_pipeline() -> None:
         code, out, err = run("pipeline.py", str(Path(tmp) / "不存在的目录"), "--json")
         check("工作区路径不存在 → 报错退出码 2", code == 2 and "init_workspace" in err,
               f"code={code} err={err}")
+
+    # --- 放行声明识别修订（R4 摩擦修补）：账本噪音排除/不放行识别/语义反转防护 ---
+    with tempfile.TemporaryDirectory() as td4:
+        ws4 = Path(td4) / "w"
+        ws4.mkdir()
+        (ws4 / "decision_journal.md").write_text("# 台账\n本行提及放行声明但不应被识别\n声明人：张三\n", encoding="utf-8")
+        h4 = {"contract_version": "1.0", "project": {"name": "t"},
+              "decision_question": "q", "recommendation": "GO",
+              "key_assumptions": [], "critical_uncertainties": []}
+        (ws4 / "handoff.json").write_text(json.dumps(h4, ensure_ascii=False), encoding="utf-8")
+        (ws4 / "product_baseline.md").write_text("# 基线\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws4), "--json")
+        st4 = {s["id"]: s for s in out["stages"]}["4"]
+        check("账本文件提及放行声明不被误识别（噪音排除）",
+              st4["status"] == "fail" and "未找到" in st4["missing"][0],
+              f"s4={st4}")
+        # 已签署的不放行声明 → 仍 fail（语义反转防护）
+        (ws4 / "launch_checklist.md").write_text("# 评审\n## 放行声明\n结论：不放行（NO RELEASE）\n声明人：张三\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws4), "--json")
+        st4 = {s["id"]: s for s in out["stages"]}["4"]
+        check("已签署的不放行声明判 fail（语义反转防护）",
+              st4["status"] == "fail" and "不放行" in st4["missing"][0],
+              f"s4={st4}")
+        # 正常签署放行 → pass
+        (ws4 / "launch_checklist.md").write_text("# 评审\n## 放行声明\n准予放行\n声明人：张三\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws4), "--json")
+        st4 = {s["id"]: s for s in out["stages"]}["4"]
+        check("正常签署放行声明判 pass", st4["status"] == "pass", f"s4={st4}")
+
+    # --- 豁免机制：waived_stages 标 waived、no_launch 保持 pending（R1 摩擦修补） ---
+    with tempfile.TemporaryDirectory() as td3:
+        code, out, err = run("init_workspace.py", "豁免测试", "--dir", td3, "--with-contract")
+        assert code == 0, err
+        ws3 = next(Path(td3).iterdir())
+        h3 = json.loads((ws3 / "handoff.json").read_text(encoding="utf-8"))
+        h3["decision_question"] = "已真实决策的测试项目"
+        h3["recommendation"] = "GO"
+        h3["scope"] = {"waived_stages": ["1"], "no_launch": True, "note": "用户明确承担风险跳过验证"}
+        (ws3 / "handoff.json").write_text(json.dumps(h3, ensure_ascii=False), encoding="utf-8")
+        # 补 product_baseline 使环节 3 通过，专注观察豁免效果
+        (ws3 / "product_baseline.md").write_text("# 产品基线\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws3), "--json")
+        st = {s["id"]: s for s in out["stages"]}
+        check("scope.waived_stages → 环节 1 标 waived 且不计 fail",
+              st["1"]["status"] == "waived" and code == 0, f"code={code} s1={st['1']}")
+        check("scope.no_launch → 环节 4/4.5 保持 pending 而非 fail",
+              st["4"]["status"] == "pending" and st["4.5"]["status"] == "pending",
+              f"s4={st['4']['status']} s45={st['4.5']['status']}")
+
+    # --- 骨架 handoff（init_workspace 占位）不得判 pass（真实使用摩擦修补） ---
+    import tempfile as _tf2
+    with _tf2.TemporaryDirectory() as td2:
+        code, out, err = run("init_workspace.py", "骨架测试", "--dir", td2)
+        assert code == 0, err
+        ws2 = next(Path(td2).iterdir())
+        code, out, err = run("pipeline.py", str(ws2), "--json")
+        s2 = {s["id"]: s for s in out["stages"]}["2"]
+        check("骨架 handoff 被环节 2 拒判为 fail（decision_question 占位识别）",
+              code == 1 and s2["status"] == "fail"
+              and any("骨架" in m or "待填写" in m for m in s2["missing"]),
+              f"code={code} s2={s2}")
 
 
 def main() -> int:
