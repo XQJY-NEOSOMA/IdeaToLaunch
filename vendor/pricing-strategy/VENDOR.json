@@ -1,0 +1,11 @@
+{
+  "name": "pricing-strategy",
+  "source": "/app/.agents/skills/pricing-strategy（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "模块 4 定价专项（SaaS 定价页/档位/提价）",
+  "applicability_boundary": "通用定价方法论仍以 references/business-model.md 为准，本技能作 SaaS 深化",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
