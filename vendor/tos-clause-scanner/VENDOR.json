@@ -1,0 +1,11 @@
+{
+  "name": "tos-clause-scanner",
+  "source": "/app/.agents/skills/tos-clause-scanner（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 4 法务线（服务条款风险扫描）",
+  "applicability_boundary": "SaaS 发布前 ToS/隐私政策扫描；不替代法律专业意见",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
