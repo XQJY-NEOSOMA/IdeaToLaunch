@@ -79,3 +79,22 @@ v2.0 → v3.0 的缺口修复：市场研究、竞品分析、商业模式与定
 | 6 | 单位经济表"草案"标注无区分度 | business-model.md 改为健康度打分（达标才可支撑报价决策） |
 
 另按审查建议新增：项目工作区约定（固定账本文件名 + 会话开始先开账本）、"算术必须用计算工具并保留算式"规则。
+
+### Dogfood v2（2026-08-24，软件/服务轨）
+
+案例："物流园区外骨骼工人安全监测 SaaS"。结论再次为诚实的 **ABSTAIN**（痛点与客群容器 ESTIMATED 真实、付费意愿 UNVERIFIED、基准档 LTV/CAC=2.56 marginal），最小实验带量化证实/证伪判据；handoff.json 一次通过 validate_handoff 校验。
+
+**修补验收**：v3.1/v3.2 的 8 项修补中 7 项"已消除"、1 项"大部分消除"（官方数据豁免为最大受益者——物流园区统计仅靠转载链传播，无豁免只能卡 UNVERIFIED）。纯桌面轮出口规则成功锁住决策空间（拦截了 conditional GO 冲动）。
+
+**v2 新摩擦点及修补（v3.2.1 已落地）**：
+
+| # | 摩擦 | 修补 |
+|---|---|---|
+| 1 | tam bottomup 无因子链，关键假设无法挂 name/source | calc.py bottomup 支持因子链（向后兼容） |
+| 2 | 输入准备类辅助算术落在脚本外（灰色地带） | 新增 `expr` 子命令（ast 白名单，注入拒绝） |
+| 3 | 回本期口径脚本与文档不同步 | business-model.md §3.1 补 initial_cost 扩展 + formulas 尾部统一标注方法论出处章节 |
+| 4 | "数据不足"无一等存放位 | research-log 模板新增"检索留痕与数据不足清单"小节 |
+| 5 | handoff.json 从零手写易踩 schema 坑 | init_workspace.py 生成骨架（自检过 validate）+ --with-contract |
+| 6 | 复制来的账本带"（模板）"字样 | init_workspace 复制时自动去除 |
+
+selftest 扩展至 28 项断言，全绿。
