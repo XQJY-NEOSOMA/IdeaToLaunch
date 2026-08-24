@@ -362,7 +362,7 @@ def build_chapters(handoff: dict, cards: list, hypotheses: list, experiments: li
     lines = []
     if hypotheses:
         lines += ["", "| # | 关键假设 | 数值/口径 | 状态 | 来源/依据 |",
-                  "|---|---|---|---|---|---|"]
+                  "|---|---|---|---|---|"]
         for h in hypotheses:
             lines.append(f"| {h['id']} | {h['content']} | {h['value']} | {h['status']} | {h['source']} |")
         lines.append("")
@@ -410,7 +410,7 @@ def build_registry(hypotheses: list, cards: list, formulas: list) -> list:
         "## 假设与证据总登记处（所有章节引用此处编号）",
         "",
         "| 编号 | 类型 | 内容 | 状态 | 来源/依据 |",
-        "|---|---|---|---|---|---|",
+        "|---|---|---|---|---|",
     ]
     for h in hypotheses:
         lines.append(f"| {h['id']} | 假设 | {h['content']} | {h['status']} | {h['source']} |")
