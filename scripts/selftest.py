@@ -9,6 +9,8 @@
     - validate_handoff.py：合法样本通过、非法样本逐条报错
     - init_workspace.py：幂等性、handoff.json 骨架过契约校验、模板「（模板）」标记去除、
       --with-contract 生效
+    - pipeline.py：空工作区全 fail/pending；环节 0-2 完成后前三环 pass；环节 3 在
+      GO/ABSTAIN 两种 handoff 下的不同表现；环节 5 已结算预测驱动命中率自查判据
 
 用法：python3 scripts/selftest.py
 退出码：0 全部通过；1 存在失败断言。
@@ -436,6 +438,314 @@ def test_init_workspace() -> None:
               f"code={code} err={err}")
 
 
+# ---------------------------------------------------------------------------
+# assemble_bp.py
+# ---------------------------------------------------------------------------
+
+GO_HANDOFF = {
+    "contract_version": "1.0",
+    "project": {"name": "演示项目", "decision_log_ref": "decision_journal.md#1"},
+    "decision_question": "是否进入产品落地环节？",
+    "recommendation": "GO",
+    "confidence": None,
+    "judgment_contract": {
+        "current_judgment": "值得做：细分市场有真实付费意愿",
+        "what_would_change_my_mind": "内测 90 天付费率 <2%",
+        "next_step": "完成 PRD 与 MVP 里程碑",
+    },
+    "key_assumptions": [
+        {"statement": "目标用户愿意月付 100 元", "status": "ASSUMED", "evidence_refs": ["H-01"]},
+    ],
+    "critical_uncertainties": ["真实转化率未知"],
+    "constraints": ["预算 ≤ 50 万"],
+}
+
+RESEARCH_LOG = """# 研究日志
+
+## 一、研究结论卡
+
+【研究结论卡】
+结论：2025 年目标细分市场规模约 120 亿元/年，年增速 15%
+对应假设：H-01
+证据等级：ESTIMATED
+证据类型：桌面研究
+来源：某行业年度报告
+时效：2025 年数据，2025-01 采集
+
+## 二、假设台账
+
+| 编号 | 假设内容 | 数值/口径 | 状态 | 来源/依据 | 关联结论卡 | 复核日期 |
+|---|---|---|---|---|---|---|
+| H-01 | 目标用户愿意月付 100 元 | 100 元/月 | ASSUMED | 访谈 3 人 | R-01 | |
+
+## 五、算式附录
+
+50*80*12 = 48000（ARPU 估算，2025-01）
+"""
+
+DECISION_JOURNAL = """# 决策日志
+
+## 预测登记
+
+| # | 日期 | 预测内容 | 概率 | 到期判据/时间 | 当时依据 | 状态 | 结算日期 | 结果 | 更正记录 |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | | | 0.0–1.0 | | | 未到期 | | 成真/落空 | |
+
+## 决策台账
+
+| # | 日期 | 决定 | 推荐 | 实际行动 | 结果 | 复盘备注 |
+|---|---|---|---|---|---|---|
+"""
+
+
+def test_assemble_bp() -> None:
+    print("[assemble_bp.py]")
+    with tempfile.TemporaryDirectory() as tmp:
+        ws = Path(tmp) / "ws"
+        ws.mkdir()
+        (ws / "handoff.json").write_text(json.dumps(GO_HANDOFF, ensure_ascii=False), encoding="utf-8")
+        (ws / "research_log.md").write_text(RESEARCH_LOG, encoding="utf-8")
+        (ws / "decision_journal.md").write_text(DECISION_JOURNAL, encoding="utf-8")
+
+        # GO 工作区：成功组装，七章标题齐全
+        code, out, err = run("assemble_bp.py", str(ws))
+        draft = ws / "deliverables" / "bp_draft.md"
+        ok = code == 0 and out is not None and draft.is_file()
+        check("GO 工作区 → 退出码 0，默认输出 deliverables/bp_draft.md", ok,
+              f"code={code} out={out} err={err}")
+
+        text = draft.read_text(encoding="utf-8") if draft.is_file() else ""
+        titles = ["第一章 执行摘要", "第二章 市场机会", "第三章 为什么是我们",
+                  "第四章 关键假设与风险", "第五章 计划与里程碑",
+                  "第六章 什么会推翻这个计划", "第七章 复盘与校准"]
+        check("七章标题齐全（与 templates/business-plan.md 一致）",
+              all(f"## {t}" in text for t in titles))
+
+        # 数据不足章被如实标注：本工作区第七章无预测登记、第三章无基线
+        ok = "数据不足" in text and "待补清单" in text and out is not None \
+            and any("第七章" in t for t in out["chapters_insufficient"])
+        check("账本缺内容的章节如实标「数据不足」+ 待补清单（含第七章）", ok,
+              f"chapters_insufficient={out['chapters_insufficient'] if out else None}")
+
+        # 编号标注：假设台账 H-01 与结论卡 R-01 均出现在输出中
+        ok = "〔H-01〕" in text and "〔R-01〕" in text and out is not None \
+            and "H-01" in out["refs_used"] and out["numbers_cited"] >= 1
+        check("数字/结论自动挂账本编号（〔H-01〕〔R-01〕），coverage 统计已挂编号数字", ok,
+              f"refs_used={out['refs_used'] if out else None} "
+              f"numbers_cited={out['numbers_cited'] if out else None}")
+
+        # 末尾附假设与证据总登记处 + 覆盖率统计
+        ok = "## 假设与证据总登记处" in text and "## 覆盖率统计" in text
+        check("输出末尾附「假设与证据总登记处」与覆盖率统计", ok)
+
+        # handoff 为 ABSTAIN：拒绝进入成果交付，退出码 2
+        abstain = dict(GO_HANDOFF, recommendation="ABSTAIN")
+        (ws / "handoff.json").write_text(json.dumps(abstain, ensure_ascii=False), encoding="utf-8")
+        code, out, err = run("assemble_bp.py", str(ws))
+        check("handoff 为 ABSTAIN → 报错「非 GO 不进入成果交付」退出码 2",
+              code == 2 and "非 GO 不进入成果交付" in err, f"code={code} err={err}")
+
+
+# ---------------------------------------------------------------------------
+# pipeline.py（全链路阶段门执行器）
+# ---------------------------------------------------------------------------
+
+PIPELINE_RESEARCH_LOG = """# 研究日志
+
+## 一、研究结论卡
+
+```
+【研究结论卡】
+结论：（一句话，可证伪的陈述）
+```
+
+【研究结论卡】
+结论：目标用户愿意月付 100 元
+对应假设：H-01
+证据等级：ESTIMATED
+
+## 二、假设台账
+
+| 编号 | 假设内容 | 数值/口径 | 状态 | 来源/依据 | 关联结论卡 | 复核日期 |
+|---|---|---|---|---|---|---|
+| H-01 | （填：可证伪的陈述） | | UNVERIFIED | | | |
+| H-02 | 目标用户愿意月付 100 元 | 100元/月 | ESTIMATED | 访谈 I-01 | | |
+"""
+
+
+def _pipeline_workspace(root: Path, recommendation: str) -> Path:
+    """构造环节 0-2 完成的临时工作区（研究日志含 1 张真实结论卡 + 1 条合法假设）。"""
+    ws = root / f"链路项目-{recommendation}"
+    ws.mkdir()
+    ws.joinpath("decision_journal.md").write_text("# 决策日志\n\n## 预测登记\n", encoding="utf-8")
+    ws.joinpath("research_log.md").write_text(PIPELINE_RESEARCH_LOG, encoding="utf-8")
+    ws.joinpath("judgment_contract.md").write_text("# 判断合同\n", encoding="utf-8")
+    handoff = {
+        "contract_version": "1.0",
+        "project": {"name": "链路项目"},
+        "decision_question": "是否进入产品落地环节？",
+        "recommendation": recommendation,
+        "confidence": None,
+        "key_assumptions": [{"statement": "目标用户愿意月付 100 元", "status": "ESTIMATED"}],
+        "critical_uncertainties": ["真实转化率未知"],
+    }
+    ws.joinpath("handoff.json").write_text(json.dumps(handoff, ensure_ascii=False), encoding="utf-8")
+    return ws
+
+
+def _stage_map(out: dict) -> dict:
+    return {s["id"]: s for s in out["stages"]}
+
+
+def test_pipeline() -> None:
+    print("[pipeline.py]")
+    with tempfile.TemporaryDirectory() as tmp:
+        # --- 空工作区：前三环节 fail，可选环节 pending，退出码 1 ---
+        empty = Path(tmp) / "空项目"
+        empty.mkdir()
+        code, out, err = run("pipeline.py", str(empty), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            code == 1 and out is not None
+            and stages["0"]["status"] == "fail" and stages["0"]["passed"] == 1 and stages["0"]["total"] == 3
+            and stages["1"]["status"] == "fail" and stages["2"]["status"] == "fail" and stages["3"]["status"] == "fail"
+            and stages["4"]["status"] == "pending" and stages["4.5"]["status"] == "pending" and stages["5"]["status"] == "pending"
+            and out["chain_progress"] is None
+            and out["current_gate"]["id"] == "0"
+        )
+        check("空工作区：环节 0-3 fail、4/4.5/5 pending，current_gate=环节 0，退出码 1", ok,
+              f"code={code} out={out} err={err}")
+
+        # --- 环节 0-2 完成 + GO handoff：前三环 pass，环节 3 因缺 product_baseline fail ---
+        ws = _pipeline_workspace(Path(tmp), "GO")
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            code == 1 and out is not None
+            and stages["0"]["status"] == "pass" and stages["0"]["passed"] == 3
+            and stages["1"]["status"] == "pass" and stages["1"]["passed"] == 2
+            and stages["2"]["status"] == "pass" and stages["2"]["passed"] == 3
+            and stages["3"]["status"] == "fail"
+            and any("product_baseline" in m for m in stages["3"]["missing"])
+            and out["chain_progress"] == "2" and out["current_gate"]["id"] == "3"
+        )
+        check("GO 工作区：环节 0-2 pass，环节 3 缺 product_baseline.md → fail，推进到环节 2", ok,
+              f"code={code} out={out} err={err}")
+
+        # 模板占位不计入：示例结论卡与「（填…）」假设行未造成误判（上面已 pass 即证明），
+        # 再验证假设缺四态标签会被逐条点名
+        log_path = ws / "research_log.md"
+        log_path.write_text(
+            PIPELINE_RESEARCH_LOG + "| H-03 | 月流失率 ≤ 10% | 10% | 待定 | | | |\n", encoding="utf-8"
+        )
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            out is not None and stages["1"]["status"] == "fail"
+            and any("H-03" in m for m in stages["1"]["missing"])
+        )
+        check("假设台账条目缺四态标签 → 环节 1 fail 并点名 H-03", ok, f"out={out} err={err}")
+        log_path.write_text(PIPELINE_RESEARCH_LOG, encoding="utf-8")
+
+        # 补 product_baseline.md → 环节 3 pass，门推进到环节 4（GO 要求放行声明）
+        ws.joinpath("product_baseline.md").write_text("# 产品基线\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            out is not None and stages["3"]["status"] == "pass"
+            and stages["4"]["status"] == "fail"
+            and out["chain_progress"] == "3" and out["current_gate"]["id"] == "4"
+        )
+        check("补 product_baseline.md → 环节 3 pass，GO 下环节 4 缺放行声明 → fail", ok,
+              f"out={out} err={err}")
+
+        # --- 环节 4.5：有 brief + 主文档但缺报告 → fail；补报告 → pass ---
+        dl = ws / "deliverables"
+        dl.mkdir()
+        dl.joinpath("brief.md").write_text("# 项目简报\n", encoding="utf-8")
+        dl.joinpath("bp_v1.md").write_text("# 投资 BP 正文\n", encoding="utf-8")
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            out is not None and stages["4.5"]["status"] == "fail" and stages["4.5"]["passed"] == 1
+            and stages["4.5"]["total"] == 3
+            and any("readability" in m for m in stages["4.5"]["missing"])
+            and any("quality" in m for m in stages["4.5"]["missing"])
+        )
+        check("环节 4.5：主文档缺 readability/quality 报告 → fail（1/3）并点名两类报告", ok,
+              f"out={out} err={err}")
+
+        dl.joinpath("readability_report.md").write_text("# 可读性报告\n", encoding="utf-8")
+        dl.joinpath("quality_report.md").write_text("# 质量核对报告\n", encoding="utf-8")
+        ws.joinpath("launch_checklist.md").write_text(
+            "# 发布就绪检查单\n\n## 七、放行声明\n\n- 声明人（签字）：张三/产品负责人\n- 日期：2025-02-01\n",
+            encoding="utf-8",
+        )
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            out is not None and stages["4"]["status"] == "pass" and stages["4.5"]["status"] == "pass"
+            and stages["5"]["status"] == "pending"
+        )
+        check("补报告 + 已签署放行声明 → 环节 4/4.5 pass；无已结算预测环节 5 仍 pending", ok,
+              f"out={out} err={err}")
+
+        # --- 环节 5：已结算预测存在但命中率自查未填 → fail；填写后 → pass 且退出码 0 ---
+        journal_path = ws / "decision_journal.md"
+        journal_path.write_text(
+            "# 决策日志\n\n## 预测登记\n\n"
+            "| # | 日期 | 预测内容 | 概率 | 到期判据/时间 | 当时依据 | 状态 | 结算日期 | 结果 | 更正记录 |\n"
+            "|---|---|---|---|---|---|---|---|---|---|\n"
+            "| 1 | 2025-01-01 | 首月付费转化率达 5% | 0.7 | 2025-02-01 | 访谈 | 成真 | 2025-02-02 | 成真 | |\n\n"
+            "## 命中率自查（样本 ≥20 条已结算才可下结论）\n\n- 已结算预测数：\n\n**结论**：（样本不足 / 过度自信 / 信心不足 / 基本校准）\n",
+            encoding="utf-8",
+        )
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            code == 1 and out is not None
+            and stages["5"]["status"] == "fail" and stages["5"]["passed"] == 1 and stages["5"]["total"] == 2
+            and out["current_gate"]["id"] == "5"
+        )
+        check("环节 5：有已结算预测但命中率自查未填 → fail（1/2），current_gate=环节 5", ok,
+              f"code={code} out={out} err={err}")
+
+        journal_path.write_text(
+            journal_path.read_text(encoding="utf-8")
+            .replace("- 已结算预测数：", "- 已结算预测数：1")
+            .replace("**结论**：（样本不足 / 过度自信 / 信心不足 / 基本校准）", "**结论**：样本不足，结论不可用"),
+            encoding="utf-8",
+        )
+        code, out, err = run("pipeline.py", str(ws), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            code == 0 and out is not None
+            and all(s["status"] == "pass" for s in out["stages"])
+            and out["chain_progress"] == "5" and out["current_gate"] is None
+        )
+        check("环节 5 命中率自查填写后：全链路 pass，退出码 0，current_gate=null", ok,
+              f"code={code} out={out} err={err}")
+
+        # --- ABSTAIN handoff：环节 3 blocked（按契约不进入）而非 fail，4/4.5 pending ---
+        ws_abstain = _pipeline_workspace(Path(tmp), "ABSTAIN")
+        code, out, err = run("pipeline.py", str(ws_abstain), "--json")
+        stages = _stage_map(out) if out else {}
+        ok = (
+            code == 0 and out is not None
+            and stages["0"]["status"] == "pass" and stages["1"]["status"] == "pass" and stages["2"]["status"] == "pass"
+            and stages["3"]["status"] == "blocked" and "按契约不进入" in stages["3"]["note"]
+            and stages["4"]["status"] == "pending" and stages["4.5"]["status"] == "pending"
+            and out["chain_progress"] == "3"
+        )
+        check("ABSTAIN handoff：环节 3 blocked（按契约不进入）而非 fail，4/4.5 pending，退出码 0", ok,
+              f"code={code} out={out} err={err}")
+
+        # --- 工作区路径不存在 → 退出码 2 ---
+        code, out, err = run("pipeline.py", str(Path(tmp) / "不存在的目录"), "--json")
+        check("工作区路径不存在 → 报错退出码 2", code == 2 and "init_workspace" in err,
+              f"code={code} err={err}")
+
+
 def main() -> int:
     print(f"自测目录：{SCRIPTS_DIR}\n")
     test_unit_economics()
@@ -444,6 +754,8 @@ def main() -> int:
     test_expr()
     test_validate_handoff()
     test_init_workspace()
+    test_pipeline()
+    test_assemble_bp()
     print(f"\n合计：{PASS_COUNT} 通过，{FAIL_COUNT} 失败。")
     return 0 if FAIL_COUNT == 0 else 1
 
