@@ -1,0 +1,11 @@
+{
+  "name": "saas-metrics-coach",
+  "source": "/app/.agents/skills/saas-metrics-coach（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "模块 3/5 SaaS 指标与单位经济专项",
+  "applicability_boundary": "ARR/MRR/churn/NRR/quick ratio 等 SaaS 专项；TAM/加成链/校准仍由 scripts/calc.py 承担",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
