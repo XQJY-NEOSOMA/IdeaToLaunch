@@ -6,6 +6,8 @@ type: tool
 tags: ["landing-page", "wireframe", "html", "prototype", "marketing"]
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**：Social Proof 区块（用户数、客户 Logo、用户评价、媒体报道）**只允许填真实证据**。无证据时必须留空或显式标注"占位待证"，严禁携带虚构用户数/合作伙伴/推荐语上线（撞"不得虚构销量、评价、认证"红线）。
+
 # Landing Page Wireframe
 
 一键生成结构完整的落地页 HTML 原型，包含五大核心板块：

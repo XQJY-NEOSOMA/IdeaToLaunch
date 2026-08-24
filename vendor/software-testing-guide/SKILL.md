@@ -4,6 +4,8 @@ description: "建立全面的软件QA测试流程，包括制定测试策略、�
 keywords: [qa, testing, test-cases, bug-tracking, google-standards, owasp, security, automation, quality-gates, metrics]
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**：本技能中"LLM 自动执行测试/自主运行并填写结果"的表述，在本体系内一律降级为——LLM 只**生成**测试资产（策略/用例/计划/追踪表），**真实执行结果只能由真实世界运行后回填**。禁止把未实际运行的测试记为 PASS（撞"不得声称完成需要现实世界证据的验证"红线）。
+
 # 软件测试指南
 
 基于 Google 测试标准和 OWASP 安全最佳实践，为任何软件项目建立世界级的 QA 测试流程。

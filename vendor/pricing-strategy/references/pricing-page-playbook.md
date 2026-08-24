@@ -1,3 +1,5 @@
+> ⚠️ **IdeaToLaunch 使用边界**：本手册中的认证徽章（SOC 2 / ISO 27001 等）与 FAQ 安全答案模板，**仅在持有真实证书时可填**；未持有认证时不得出现相关徽章与表述（撞"不得虚构认证"红线）。文中经验数字（提价幅度、流失区间等）引用时一律挂 ESTIMATED 并注"经验法则，本项目未验证"；竞品价格引用前须实时核实时效。
+
 # Pricing Page Playbook
 
 Design specs, copy frameworks, and conversion tactics for SaaS pricing pages.

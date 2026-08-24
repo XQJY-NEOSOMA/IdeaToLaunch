@@ -11,6 +11,8 @@ description: >
   posts, or short-form content under 2000 words.
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**：① 默认 .docx 输出降级为 Markdown 直出（docx 工具链未内置）；② 文中 MCP 引用自动记录设施（.citation.jsonl）在本环境不存在——引用一律走台账编号人工登记；③ 研究产物必须回流项目工作区账本（research_log.md 结论卡/算式附录），不得只写外部游离文件。
+
 # Report Writing
 
 Orchestrate the full lifecycle of professional long-form reports: outline design → content creation → review → assembly.
