@@ -1,0 +1,11 @@
+{
+  "name": "api-doc-gen",
+  "source": "/app/.agents/skills/api-doc-gen（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 软件轨 API 文档",
+  "applicability_boundary": "从代码生成 API 文档（ast 解析，离线）；不写业务文档",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
