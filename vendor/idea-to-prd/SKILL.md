@@ -4,6 +4,8 @@ description: "一句话需求生成完整产品需求文档（PRD），包含用
 license: MIT
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**："基于合理假设继续/快速模式"在本体系内的强制要求——所有假设一律挂四态标签（ASSUMED/UNVERIFIED）并登记为待验证问题（H-xx 编号回写 research_log 假设台账），**不得静默变成产品事实**。文档结构与契约以 `templates/prd.md` 为准，本技能内嵌模板与质量清单不作契约。
+
 # PRD Architect
 
 **一句话需求 → 完整 PRD**：通过结构化 SOP 流程，将模糊的产品想法转化为包含用户故事、功能清单、MoSCoW 优先级和验收标准的专业产品需求文档。

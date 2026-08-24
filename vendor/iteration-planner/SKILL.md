@@ -4,6 +4,8 @@ description: "敏捷 Sprint 规划助手，基于团队产能和历史 Velocity 
 license: MIT
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**：所有"信息不足时的默认值"（可用天数系数、Velocity 70% 保守目标、通用角色等）输出时必须显式标注 ASSUMED——默认值是假设不是事实。
+
 # Sprint Planner — 敏捷 Sprint 规划
 
 基于团队产能 (Capacity) 和历史 Velocity，帮助 Scrum Master / PM 完成 Sprint 规划：拆分并分配 Story/Task，检查负载均衡，识别依赖关系，输出可执行的 Sprint 计划。

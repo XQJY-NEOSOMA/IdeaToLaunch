@@ -4,6 +4,8 @@ description: "生成融资BP大纲，完整覆盖从问题定义到融资需求�
 license: MIT
 ---
 
+> ⚠️ **IdeaToLaunch 使用边界**：快速模式下的假设数字必须挂 ASSUMED 并回写账本（可进融资材料的数字一律要求来源编号）。BP 结构契约以 `templates/business-plan.md` 与 `scripts/assemble_bp.py` 为准。
+
 # Pitch Deck Outline
 
 **一句话需求 → 完整融资 BP 大纲**：通过结构化 SOP 流程，将创业项目信息转化为包含「问题 → 方案 → 市场 → 商业模式 → 团队 → 融资需求」六大核心模块的融资 BP 大纲，并为每个模块提供数据呈现建议。
