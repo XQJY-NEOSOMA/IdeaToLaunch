@@ -1,0 +1,11 @@
+{
+  "name": "idea-to-prd",
+  "source": "/app/.agents/skills/idea-to-prd（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 产品定义（PRD 生成方法论）",
+  "applicability_boundary": "生成方法论主体；templates/prd.md 保留为数据契约格式（验收标准可检验判据 + 假设编号纪律）",
+  "dedup_note": "product-spec-writer（英文版，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
