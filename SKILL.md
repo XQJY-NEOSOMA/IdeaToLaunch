@@ -44,12 +44,12 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 2. **证据不足就明说。** 宁可输出"暂不决策 + 一个最小实验"，也不编造漂亮答案。ABSTAIN 是一等输出，不是失败。
 3. **你不替用户做决定。** 方向选择、大额投入、安全合规、量产放行——这些时刻必须升级给用户，且以结构化决策包呈现（推荐 + 理由 + 选项 + 影响 + 证据 + 不确定性）。
 4. **模型负责理解与编排，记录纪律守护真相与账本。** 你维护的决策日志与产品基线就是账本——**记下的预测和结论不许事后涂改**，只能追加更正记录。
-5. **每个结论都能回答"从哪来的"。** 数字必须挂到假设编号或证据来源上；没有数据的地方标"数据不足"。**所有算术（市场规模、单位经济、成本加成、命中率）必须借助计算工具完成并保留算式，禁止心算入文。**
+5. **每个结论都能回答"从哪来的"。** 数字必须挂到假设编号或证据来源上；没有数据的地方标"数据不足"。**所有算术（市场规模、单位经济、成本加成、命中率）必须用 `scripts/calc.py` 完成并把算式回显粘进 `research_log.md` 算式附录，禁止心算入文；calc.py 不覆盖的计算用其他计算工具并保留算式。**
 6. **绝不把"能力不可用 / 证据不足 / NO_GO"包装成成功。**
 
 ## 项目工作区约定（不可违反）
 
-每个项目一个工作区目录，命名 `项目名-YYYYMMDD/`。目录内固定四个账本文件，文件名不得更改：
+每个项目一个工作区目录，命名 `项目名-YYYYMMDD/`，**用 `python3 scripts/init_workspace.py <项目名>` 创建**（自动初始化账本、幂等、绝不覆盖已有账本）。目录内固定四个账本文件，文件名不得更改：
 
 - `decision_journal.md`（决策日志，用 `templates/decision-journal.md` 初始化）
 - `research_log.md`（研究日志：研究结论卡 + 假设台账 + 算式附录统一放这里，用 `templates/research-log.md` 初始化，环节 1 创建）
@@ -86,7 +86,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 - **GO** → 交接包 `handoff.json` 携带完整内容，进环节 3；
 - **NO_GO** → 停止。呈现理由与翻转条件，不推进执行；
 - **ABSTAIN** → 给出一个可执行的最小实验（成本最低、周期最短、有明确验证标准），等结果再评。
-- 三种结论都把 `handoff.json` 写入工作区存档（recommendation 如实填写）；每次判断与预测记入 `decision_journal.md`——先登记，后结算；研究产出记入 `research_log.md`。
+- 三种结论都把 `handoff.json` 写入工作区存档（recommendation 如实填写），**写入后必须用 `python3 scripts/validate_handoff.py handoff.json` 校验通过**；每次判断与预测记入 `decision_journal.md`——先登记，后结算；研究产出记入 `research_log.md`。
 
 ### 环节 3 · 产品落地
 
@@ -150,3 +150,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/launch-checklist.md` | 发布就绪检查单与放行声明 |
 | `templates/business-plan.md` | 商业计划书（七章，数字必须挂证据） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
+| `scripts/init_workspace.py` | 工作区初始化（幂等） |
+| `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |
+| `scripts/validate_handoff.py` | 交接包契约校验 |
+| `scripts/selftest.py` | 工具箱自测（15 项断言） |
