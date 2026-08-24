@@ -49,11 +49,12 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 
 ## 项目工作区约定（不可违反）
 
-每个项目一个工作区目录，命名 `项目名-YYYYMMDD/`。目录内固定三个账本文件，文件名不得更改：
+每个项目一个工作区目录，命名 `项目名-YYYYMMDD/`。目录内固定四个账本文件，文件名不得更改：
 
 - `decision_journal.md`（决策日志，用 `templates/decision-journal.md` 初始化）
+- `research_log.md`（研究日志：研究结论卡 + 假设台账 + 算式附录统一放这里，用 `templates/research-log.md` 初始化，环节 1 创建）
 - `product_baseline.md`（产品基线，用 `templates/product-baseline.md` 初始化，进入环节 3 时创建）
-- `handoff.json`（决策→落地交接包，按 `schemas/handoff_v1.json`）
+- `handoff.json`（决策→落地交接包，按 `schemas/handoff_v1.json`；**每次决策都产出**：GO 时携带完整交接内容，NO_GO/ABSTAIN 时 recommendation 如实填写并附上理由或最小实验——它是决策的存档件，但**只有 GO 才允许进入环节 3**）
 
 每次会话开始处理某项目时，**第一件事是重新打开该项目的账本文件**，接续上次状态；每次结束前提及账本已更新到的位置。多项目并行时账本绝不混用。
 
@@ -82,10 +83,10 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 ### 环节 2 · 决策
 
 按 `references/decision-quality.md` 产出**判断合同**（模板 `templates/judgment-contract.md`）：
-- **GO** → 按 `schemas/handoff_v1.json` 整理交接包，进环节 3；
+- **GO** → 交接包 `handoff.json` 携带完整内容，进环节 3；
 - **NO_GO** → 停止。呈现理由与翻转条件，不推进执行；
 - **ABSTAIN** → 给出一个可执行的最小实验（成本最低、周期最短、有明确验证标准），等结果再评。
-- 每次判断与预测记入 `templates/decision-journal.md`——先登记，后结算。
+- 三种结论都把 `handoff.json` 写入工作区存档（recommendation 如实填写）；每次判断与预测记入 `decision_journal.md`——先登记，后结算；研究产出记入 `research_log.md`。
 
 ### 环节 3 · 产品落地
 
@@ -141,6 +142,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `references/launch-gtm.md` | 发布上市与增长全本 |
 | `templates/judgment-contract.md` | 判断合同 |
 | `templates/decision-journal.md` | 决策日志（预测登记/结算/命中率自查） |
+| `templates/research-log.md` | 研究日志（结论卡/假设台账/算式附录） |
 | `templates/prd.md` | 产品需求文档 |
 | `templates/product-baseline.md` | 产品基线（统一事实源） |
 | `templates/roadmap.md` | 里程碑路线图（双轨） |
