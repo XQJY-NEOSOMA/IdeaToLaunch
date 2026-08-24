@@ -1,0 +1,11 @@
+{
+  "name": "iteration-planner",
+  "source": "/app/.agents/skills/iteration-planner（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 软件轨 Sprint 计划",
+  "applicability_boundary": "软件轨 W2-W5 的迭代计划工具；生命周期主权在 references/product-lifecycle.md",
+  "dedup_note": "sprint-plan-builder（英文版，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
