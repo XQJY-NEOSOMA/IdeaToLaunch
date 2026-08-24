@@ -1,0 +1,11 @@
+{
+  "name": "data-viz-gen",
+  "source": "/app/.agents/skills/data-viz-gen（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "模块 3 数据图表/信息图",
+  "applicability_boundary": "替代 chart-gen（Node.js 运行时无法离线内置）",
+  "dedup_note": "chart-gen（未搬运，依赖 Node.js）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
