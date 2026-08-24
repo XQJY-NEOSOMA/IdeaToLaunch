@@ -1,0 +1,11 @@
+{
+  "name": "workload-calculator",
+  "source": "/app/.agents/skills/workload-calculator（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 工时估算（PERT/T-shirt/FPA）",
+  "applicability_boundary": "软件轨工作量估算；不替代财务模块的成本测算",
+  "dedup_note": "project-sizing-guide（英文版，已去重）",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
