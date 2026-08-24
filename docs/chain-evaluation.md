@@ -145,3 +145,11 @@ selftest 扩展至 28 项断言，全绿。
 - selftest 扩展至 **44 项断言全绿**（含 pipeline 10 项、assemble_bp 6 项）；端到端冒烟复验通过。
 
 环节实现度终态：环节 0 init_workspace.py｜环节 1 方法论+research_log 契约+pipeline 判据｜环节 2 handoff schema+validate_handoff｜环节 3 模板+基线契约｜环节 4 检查单+放行声明｜环节 4.5 assemble_bp+vendor 模块+可读性/质量门禁｜环节 5 decision-journal+calc calibration——全环节机械可校验。
+
+### v3.8 环节 3/4/5 官方技能内置（2026-08-24）
+
+第二批整体搬运 12 个官方技能入 `vendor/`（累计 21 个，约 820KB）：环节 3 产品落地 7 个（idea-to-prd/user-story-canvas/iteration-planner/gantt-chart-builder/workload-calculator/software-testing-guide/api-doc-gen）、环节 4 发布上市 4 个（compliance-review-planner/tos-clause-scanner/process-doc/lp-proto-gen）、环节 5 运营目标 1 个（okr-planner）。
+
+- **去重 6 个**：product-spec-writer、sprint-plan-builder、regulatory-audit-generator、gantt-planner、project-sizing-guide、test-suite-architect（均为已入选技能的英文版）。
+- **冒烟回归**：5 个含脚本技能逐一实跑通过（故事地图/甘特图 CPM/PERT 估算含字段契约/API 文档/落地页）；既有 selftest 44/44 无降级。
+- **职能边界**：PRD/roadmap/launch-checklist 模板保留为数据契约格式，官方技能为生成方法论与执行工具；硬件 EVT/DVT/PVT 主权留在 product-lifecycle.md。SKILL.md 环节 3/4/5 已接线。

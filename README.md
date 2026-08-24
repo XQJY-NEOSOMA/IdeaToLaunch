@@ -41,7 +41,7 @@
 
 ## 内置集成的官方技能（vendor/，离线可用）
 
-9 个 Kimi 官方已验证技能以整体搬运方式内置（DCF 估值、SaaS 指标、定价、风险热力图、数据图表、报告写作方法论、市场洞察、投资 BP、融资大纲），全部离线独立运行。注册表、去重记录与职能边界见 `vendor/README.md`。
+21 个 Kimi 官方已验证技能以整体搬运方式内置，覆盖全链路：环节 3 产品落地（idea-to-prd/user-story-canvas/iteration-planner/gantt-chart-builder/workload-calculator/software-testing-guide/api-doc-gen）、环节 4 发布上市（compliance-review-planner/tos-clause-scanner/process-doc/lp-proto-gen）、环节 4.5 成果交付（DCF 估值/SaaS 指标/定价/风险热力图/数据图表/报告写作/市场洞察/投资 BP/融资大纲）、环节 5 运营复盘（okr-planner）。注册表、去重记录与职能边界见 `vendor/README.md`。
 
 ## 使用
 

@@ -109,14 +109,14 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 
 仅当决策为 GO（或用户明确知情承担风险跳过）时进入：
 1. 用 `templates/prd.md` 完成产品定义；交接包里的 UNVERIFIED 假设登记为待验证问题——**不得让未验证假设静默变成产品事实**；
-2. 按 `references/product-lifecycle.md` 推进：硬件走 S0–S8 轨，软件/服务走 MVP→GA 轨；全程维护 `templates/product-baseline.md`（所有产物共享一份基线，不得参数冲突）；
+2. 按 `references/product-lifecycle.md` 推进：硬件走 S0–S8 轨，软件/服务走 MVP→GA 轨；全程维护 `templates/product-baseline.md`（所有产物共享一份基线，不得参数冲突）；执行工具优先使用 `vendor/` 内置技能——PRD 方法论 `vendor/idea-to-prd/`、用户故事 `vendor/user-story-canvas/`、Sprint 计划 `vendor/iteration-planner/`、甘特图/CPM `vendor/gantt-chart-builder/`、工时估算 `vendor/workload-calculator/`、软件 QA `vendor/software-testing-guide/`、API 文档 `vendor/api-doc-gen/`（全部离线可用）；
 3. 用 `templates/roadmap.md` 管里程碑（出口判据必须有证据），用 `templates/risk-register.md` 管风险（概率×影响暴露值）；
 4. 事实状态标签（V实测/S仿真/C计算/E外部证据/A假设/P待供应商/T待测试/R废弃）随结论呈现；
 5. 需要用户裁定的时刻，用结构化决策包升级，等明确回复再继续。
 
 ### 环节 4 · 发布上市
 
-1. 按 `templates/launch-checklist.md` 做六线就绪评审（产品/供应链/合规/内容/渠道/售后），逐项过判据；
+1. 按 `templates/launch-checklist.md` 做六线就绪评审（产品/供应链/合规/内容/渠道/售后），逐项过判据；合规线深化用 `vendor/compliance-review-planner/`、法务条款扫描用 `vendor/tos-clause-scanner/`、售后 SOP 用 `vendor/process-doc/`、落地页原型用 `vendor/lp-proto-gen/`；
 2. 按 `references/launch-gtm.md` 设计发布策略（灰度/众筹/预售/直发）与 GTM 渠道；
 3. **放行声明是证据门**：现货能力、合规文件、售后能力齐备才可宣布"上市"；签署放行声明（声明人/日期/证据清单）；
 4. 不得虚构销量、评价、认证。
@@ -131,7 +131,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 
 ### 环节 5 · 运营复盘
 
-1. 发布后按 `references/launch-gtm.md` 的 30/60/90 天指标基线跟踪（激活/留存/复购/NPS/退货率），数据不足时诚实呈现；
+1. 发布后按 `references/launch-gtm.md` 的 30/60/90 天指标基线跟踪（激活/留存/复购/NPS/退货率），数据不足时诚实呈现；运营目标管理用 `vendor/okr-planner/`；
 2. 到期预测在决策日志中逐条结算（成真/落空），**结算不可逆，改判只能追加更正**；
 3. 输出命中率自查：样本不足（<20 条）明说"样本不足，结论不可用"；
 4. 复盘结论回流：更新产品基线、风险登记、下一轮机会验证。**闭环不断：每个结果都回流为证据。**
@@ -179,7 +179,7 @@ description: 从一句话想法到产品发布的全链路主管技能，完全�
 | `templates/readability-report.md` | 可读性报告（六维评分，阈值 80/12） |
 | `templates/quality-report.md` | 质量核对报告（8 项门禁） |
 | `schemas/handoff_v1.json` | 决策→落地交接契约（JSON Schema） |
-| `vendor/` | 内置集成的 9 个官方技能（离线可用；注册表与边界见 `vendor/README.md`） |
+| `vendor/` | 内置集成的 21 个官方技能（离线可用；注册表与边界见 `vendor/README.md`） |
 | `scripts/init_workspace.py` | 工作区初始化（幂等） |
 | `scripts/calc.py` | 计算核心：单位经济/TAM 双法/硬件加成链/校准统计（样本不足机械化拒答） |
 | `scripts/validate_handoff.py` | 交接包契约校验 |
