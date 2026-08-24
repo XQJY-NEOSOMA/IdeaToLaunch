@@ -555,12 +555,12 @@ footer.ig-footer{{
 <div class="container">
 <header>
 <h1>{_esc(title)}</h1>
-{"<p class='subtitle">" + _esc(subtitle) + "</p>" if subtitle else ""}
+{"<p class='subtitle'>" + _esc(subtitle) + "</p>" if subtitle else ""}
 </header>
 <main>
 {body_content}
 </main>
-{"<footer class='ig-footer">" + _esc(footer) + "</footer>" if footer else ""}
+{"<footer class='ig-footer'>" + _esc(footer) + "</footer>" if footer else ""}
 </div>
 </body>
 </html>"""
