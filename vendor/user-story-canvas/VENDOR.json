@@ -1,0 +1,11 @@
+{
+  "name": "user-story-canvas",
+  "source": "/app/.agents/skills/user-story-canvas（Kimi 官方技能库，已验证）",
+  "vendored_at": "2026-08-24",
+  "license": "MIT（随附 LICENSE 文件，如有）",
+  "module_mapping": "环节 3 用户故事画布",
+  "applicability_boundary": "用户故事地图与画布生成（带脚本）；PRD 骨架仍以 idea-to-prd + templates/prd.md 为准",
+  "dedup_note": "无",
+  "dependencies": "纯 Python 标准库 / 纯文档，离线可运行",
+  "integration": "IdeaToLaunch 成果转化引擎内部模块，离线独立运行，不依赖原技能在线状态"
+}
