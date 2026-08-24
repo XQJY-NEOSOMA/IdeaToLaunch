@@ -593,7 +593,7 @@ def build_chapters(handoff: dict, cards: list, hypotheses: list, experiments: li
         lines += [f"**{hypothesis_table_title(hypotheses)}**", ""]
         if attention:
             lines += ["| # | 关键假设 | 数值/口径 | 状态 | 来源/依据 |",
-                      "|---|---|---|---|---|---|"]
+                      "|---|---|---|---|---|"]
             for h in attention:
                 lines.append(
                     f"| {h['id']} | {h['content']} | {h['value']} | {h['status']} | {h['source']} |")
