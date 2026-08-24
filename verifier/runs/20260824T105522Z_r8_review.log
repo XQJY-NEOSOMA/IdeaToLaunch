@@ -1,0 +1,9 @@
+PASS  C1 自研脚本自测全绿
+PASS  C2 链路体检冒烟（骨架工作区）
+PASS  C3 交接契约合法且真实工作区通过校验
+PASS  C4 SKILL.md 结构与索引引用完整
+PASS  C5 vendor 完整性与元信息
+PASS  C6 仓库卫生（无 __pycache__/.pyc）
+PASS  C7 标签体系治理（分工/映射/模板声明）
+{"total": 7, "passed": 7, "failed": 0, "failed_ids": []}
+exit=0
