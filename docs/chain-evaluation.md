@@ -135,3 +135,13 @@ selftest 扩展至 28 项断言，全绿。
 - **职能边界防重复**：calc.py 保留（账本纪律/TAM/加成链/校准为官方所无）；SaaS 专项、定价深化、风险热力图、BP 方法论的分工写入 `vendor/README.md`。
 - **元信息**：每个内置技能含 VENDOR.json（来源/搬运日期/许可证/适用边界/去重说明/依赖）。
 - **无法内置依赖**：chart-gen 的 Node.js（已替代）、docx 的 C# 工具链（成品保持 Markdown 直出）。
+
+### v3.7 全环节可执行化（2026-08-24）
+
+从"方法论全集"升级为"可执行系统"：新增两个机械构件，使每个环节都有可运行、可校验、可验收的实现。
+
+- **`scripts/pipeline.py` 全链路阶段门执行器**：对项目工作区做链路体检——环节 0-5 各自的出口判据（账本存在性/结论卡与假设有效性/handoff 校验/GO-ABSTAIN 分流/放行声明/成果交付门禁/预测结算）逐项核查，输出 pass/blocked/pending/fail + 缺失项 + 下一步命令 + chain_progress 与 current_gate。会话开始第一件事从"打开账本"升级为"打开账本 + 跑链路体检"。
+- **`scripts/assemble_bp.py` BP 自动组装器**：GO 后从法定账本机械组装七章 BP 初稿——数字自动挂账本编号（〔H-xx〕〔R-xx〕〔算式 C-x〕），缺内容章节如实标"数据不足"+待补清单，末尾附假设与证据总登记处与 coverage 统计；非 GO 退出码 2。"GO→BP 自动转化"从方法论变为机械流程。
+- selftest 扩展至 **44 项断言全绿**（含 pipeline 10 项、assemble_bp 6 项）；端到端冒烟复验通过。
+
+环节实现度终态：环节 0 init_workspace.py｜环节 1 方法论+research_log 契约+pipeline 判据｜环节 2 handoff schema+validate_handoff｜环节 3 模板+基线契约｜环节 4 检查单+放行声明｜环节 4.5 assemble_bp+vendor 模块+可读性/质量门禁｜环节 5 decision-journal+calc calibration——全环节机械可校验。

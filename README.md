@@ -35,7 +35,9 @@
 | `init_workspace.py` | 创建项目工作区并初始化法定账本（幂等，绝不覆盖账本） |
 | `calc.py` | 单位经济（LTV/CAC/回本期）、TAM 双法交叉、硬件 BOM→零售加成链、校准统计（Brier/ECE，样本不足机械化拒答）——输出含算式回显 |
 | `validate_handoff.py` | 按 schema 校验交接包（规则从 schema 读取，单一事实源） |
-| `selftest.py` | 28 项自测断言 |
+| `pipeline.py` | 全链路阶段门执行器：逐环节核查出口判据，报告当前门与下一步命令 |
+| `assemble_bp.py` | GO 后从账本自动组装 BP 初稿（七章、数字挂账本编号、数据不足如实标注） |
+| `selftest.py` | 44 项自测断言 |
 
 ## 内置集成的官方技能（vendor/，离线可用）
 
