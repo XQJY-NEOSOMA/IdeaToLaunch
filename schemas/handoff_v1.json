@@ -2,64 +2,130 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "handoff_v1.json",
   "title": "Decision-to-Execution Handoff Contract v1",
-  "description": "IdeaToLaunch 环节 2（决策）→ 环节 3（产品落地）的交接格式。版本化、文件级，是决策结论进入产品落地的唯一通道。",
+  "description": "IdeaToLaunch 环节 2（决策）→ 环节 3（产品落地）的交接与存档格式。每次决策都产出（GO/NO_GO/ABSTAIN 存档）；但只有 GO 允许进入落地环节。",
   "type": "object",
-  "required": ["contract_version", "project", "decision_question", "recommendation", "key_assumptions", "critical_uncertainties"],
+  "required": [
+    "contract_version",
+    "project",
+    "decision_question",
+    "recommendation",
+    "key_assumptions",
+    "critical_uncertainties"
+  ],
   "properties": {
-    "contract_version": {"const": "1.0"},
+    "contract_version": {
+      "const": "1.0"
+    },
     "project": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "properties": {
-        "name": {"type": "string"},
-        "decision_log_ref": {"type": "string", "description": "决策日志条目编号或路径"},
-        "decided_at": {"type": "string", "format": "date-time"}
+        "name": {
+          "type": "string"
+        },
+        "decision_log_ref": {
+          "type": "string",
+          "description": "决策日志条目编号或路径"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
-    "decision_question": {"type": "string", "description": "原始决策问题"},
-    "recommendation": {"enum": ["GO", "NO_GO", "ABSTAIN"], "description": "决策结论。NO_GO/ABSTAIN 时不应进入落地环节。"},
+    "decision_question": {
+      "type": "string",
+      "description": "原始决策问题"
+    },
+    "recommendation": {
+      "enum": [
+        "GO",
+        "NO_GO",
+        "ABSTAIN"
+      ],
+      "description": "决策结论。三者都须存档；NO_GO/ABSTAIN 不进入落地环节，ABSTAIN 应在 residual_risks 或 judgment_contract.next_step 中携带最小实验。"
+    },
     "confidence": {
-      "type": ["number", "null"],
-      "minimum": 0, "maximum": 1,
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1,
       "description": "置信度；样本不足或未经校准时必须为 null，不得编造"
     },
     "judgment_contract": {
       "type": "object",
       "description": "五段判断合同（可选但建议携带）",
       "properties": {
-        "current_judgment": {"type": "string"},
-        "rationale": {"type": "string"},
-        "biggest_unknown": {"type": "string"},
-        "next_step": {"type": "string"},
-        "what_would_change_my_mind": {"type": "string"}
+        "current_judgment": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "biggest_unknown": {
+          "type": "string"
+        },
+        "next_step": {
+          "type": "string"
+        },
+        "what_would_change_my_mind": {
+          "type": "string"
+        }
       }
     },
     "key_assumptions": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["statement", "status"],
+        "required": [
+          "statement",
+          "status"
+        ],
         "properties": {
-          "statement": {"type": "string"},
-          "status": {"enum": ["VERIFIED", "ESTIMATED", "ASSUMED", "UNVERIFIED"]},
-          "evidence_refs": {"type": "array", "items": {"type": "string"}}
+          "statement": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "VERIFIED",
+              "ESTIMATED",
+              "ASSUMED",
+              "UNVERIFIED"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "description": "进入落地环节时仍需跟踪的假设；UNVERIFIED 的假设必须登记为待验证问题"
     },
     "critical_uncertainties": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "最大未知清单；落地环节应将其转化为研究任务"
     },
     "constraints": {
       "type": "array",
-      "items": {"type": "string"},
+      "items": {
+        "type": "string"
+      },
       "description": "预算/时间/法规等硬约束"
     },
     "residual_risks": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     }
   },
   "additionalProperties": false
